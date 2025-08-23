@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Clojure
+        uses: DeLaGuardo/setup-clojure@11.0
+        with:
+          cli: latest
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm dependencies
+        run: |
+          if [ -f package.json ]; then npm ci; fi
+
+      - name: Install Babashka
+        uses: babashka/babashka-setup-action@v1
+
+      - name: Run release build
+        run: bb release
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: resources/public
+        continue-on-error: true
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy to gh-pages
+        run: |
+          git fetch origin gh-pages || true
+          git switch --orphan gh-pages
+          git rm -rf .
+          cp -r resources/public/* .
+          touch .nojekyll
+          git add .
+          git commit -m "Deploy to GitHub Pages [skip ci]" || echo "Nothing to commit"
+          git push --force origin gh-pages
