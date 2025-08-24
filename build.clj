@@ -87,27 +87,53 @@
   (into {} (concat (official-plugins) (kitchen-plugins))))
 
 
+
+(defn standard-plugins-list []
+  ;; Find all scittle/src/scittle/*.cljs except core.cljs and impl/
+  (let [plugin-dir (fs/path "scittle" "src" "scittle")
+        files (fs/list-dir plugin-dir)
+        plugin-files (filter #(and (.endsWith (str %) ".cljs")
+                                   (not (.endsWith (str %) "/core.cljs"))
+                                   (not (.contains (str %) "/impl/")))
+                             files)]
+    (sort (map #(-> % fs/file-name (str/replace #"\\.cljs$" "")) plugin-files))))
+
 (defn generate-index-html [build plugins]
   (let [public-dir (fs/path build "resources" "public")
         index-file (fs/path public-dir "index.html")
         base-url "https://timothypratley.github.io/scittle-kitchen/js/"
-        urls (for [[k _] plugins]
-               (str base-url "scittle." (name k) ".js"))
+        ;; Standard plugins (from scittle/src/scittle/*.cljs)
+        std-plugins (standard-plugins-list)
+        std-urls (for [nm std-plugins]
+                   (str base-url "scittle." nm ".js"))
+        ;; Official plugins (from scittle/plugins/)
+        official-plugins-list (map name (keys (into {} (official-plugins))))
+        official-urls (for [nm official-plugins-list]
+                        (str base-url "scittle." nm ".js"))
+        ;; Community plugins (from plugins/)
+        community-plugins-list (map name (keys (into {} (kitchen-plugins))))
+        community-urls (for [nm community-plugins-list]
+                         (str base-url "scittle." nm ".js"))
         page [:html
               [:head
                [:meta {:charset "utf-8"}]
                [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
                [:title "Scittle Kitchen Plugins"]
-               (for [url urls]
+               (for [url (concat std-urls official-urls community-urls)]
                  [:script {:src url}])]
               [:body
                [:h1 "Scittle Kitchen"]
                [:p "Must be included before plugins"]
                [:div [:a {:href (str base-url "scittle.js")} (str base-url "scittle.js")]]
-               [:h1 "Scittle Kitchen Plugins"]
-               [:p "Available plugin scripts:"]
-               (for [url urls]
-                 [:div [:a {:href url} url]])]]]
+               [:h2 "Standard Plugins (built-in)"]
+               (for [[nm url] (map vector std-plugins std-urls)]
+                 [:div [:a {:href url} nm]])
+               [:h2 "Official Plugins (from scittle/plugins/)"]
+               (for [[nm url] (map vector official-plugins-list official-urls)]
+                 [:div [:a {:href url} nm]])
+               [:h2 "Community Plugins (from plugins/)"]
+               (for [[nm url] (map vector community-plugins-list community-urls)]
+                 [:div [:a {:href url} nm]])]]]
     (fs/create-dirs public-dir)
     (spit (str index-file)
           (str "<!DOCTYPE html>" \newline
