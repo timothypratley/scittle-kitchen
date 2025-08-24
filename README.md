@@ -7,14 +7,14 @@ More plugin builds for [scittle](https://github.com/babashka/scittle).
 Include the desired plugin build in your HTML page:
 
 ```html
-<script src="https://timothypratley.github.io/scittle-kitchen/js/scittle-kitchen.js"></script>
+<script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.js"></script>
 <script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.dataspex.js"></script>
 ```
 
 See [the demo page](https://timothypratley.github.io/scittle-kitchen/) for the full list of published plugins.
 
-Note that you must always include `scittle-kitchen.js` rather than the offical `scittle.js`.
-Only the `scittle-kitchen.js` knows about these plugins.
+> [!NOTE]
+> You must use this `scittle.js` rather than the official `scittle.js` to load the plugins.
 
 ## Rationale
 
@@ -127,4 +127,4 @@ Below details how `scittle-kitchen` achieves this situation by preparing the dep
 - Should plugin builds be versioned? TBD for now there will just be a global version I think.
 - Shouldn't all plugins have their own directory/edn file? YES to enable standalone building.
   But we can make it more convenient by generating from a template.
-- Should it produce scittle-kitchen.js or just scittle.js or several flavors (is there an advantage to excluding plugins)? TBD. I think it should have a different name to avoid confusion with the official scittle.js.
+- Should it produce scittle-kitchen.js or just scittle.js or several flavors (is there an advantage to excluding plugins)? TBD. I think it should have a different name to avoid confusion with the official scittle.js, but it's easier to just leave it alone.
