@@ -75,7 +75,8 @@
        (map fs/file-name)
        (remove #{"demo"})
        (map (fn [name]
-              [(keyword name) (fs/path base name)]))))
+              [(keyword name) (fs/path base name)]))
+       (sort)))
 
 (defn official-plugins []
   (find-plugins "scittle/plugins"))
@@ -88,13 +89,10 @@
 
 (defn standard-plugins []
   (let [plugin-dir (fs/path "scittle" "src" "scittle")
-        files (fs/list-dir plugin-dir)
-        plugin-files (filter #(and (= ".cljs" (fs/extension %))
-                                   (not (str/ends-with? % "core.cljs"))
-                                   (not (str/includes? % "impl")))
-                             files)]
-    (-> (map (comp fs/file-name fs/strip-ext) plugin-files)
-        (sort))))
+        plugin-files (fs/list-dir plugin-dir (complement fs/directory?))]
+    (->> (map (comp fs/file-name fs/strip-ext) plugin-files)
+         (remove #{"core"})
+         (sort))))
 
 (defn generate-index-html [build]
   (let [public-dir (fs/path build "resources" "public")
