@@ -7,17 +7,34 @@ More plugin builds for [scittle](https://github.com/babashka/scittle).
 Include the desired plugin build in your HTML page:
 
 ```html
-<script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.js"></script>
+<script src="https://timothypratley.github.io/scittle-kitchen/js/scittle-kitchen.js"></script>
 <script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.dataspex.js"></script>
 ```
 
-To see all available plugins, browse the [`plugin-templates.edn`](plugin-templates.edn) file or the `plugins/` and `scittle/plugins/` directories. Each plugin will have a corresponding JS file published to GitHub Pages and can be included via a `<script src=...>` tag as shown above. TODO: make a list appear here or somewhere.
+See [the demo page](https://timothypratley.github.io/scittle-kitchen/) for the full list of published plugins.
+
+Note that you must always include `scittle-kitchen.js` rather than the offical `scittle.js`.
+Only the `scittle-kitchen.js` knows about these plugins.
 
 ## Rationale
 
-Scittle plugins are powerful, but building them from source can be a barrier for new users and plugin authors.
-By providing precompiled plugins and a shared build/release process, we lower the entry barrier for adoption and contribution.
-This central place for building and releasing plugins can make the ClojureScript ecosystem more accessible from Scittle.
+You can load `.cljs` files directly in Scittle as scripts.
+But many ClojureScript libraries have multiple namespaces and may depend on npm packages.
+Scittle plugins are compiled JavaScript from the ClojureScript library, ready to use in Scittle.
+Only a few plugins are included in the official Scittle distribution.
+Other plugins need to be built in a special way to be usable in Scittle,
+which is a barrier for users and plugin authors.
+
+`scittle-kitchen` provides a shared build and release process for precompiled Scittle plugins.
+It uses a git submodule to always build against the latest Scittle code,
+and automatically discovers plugins in the community contributed `plugins/` directory and official `scittle/plugins/`.
+
+By publishing precompiled plugins, we lower the entry barrier to try ClojureScript libraries.
+My main hope is that having more precompiled plugins available will help people experiment.
+That's what I really love about Scittle, being able to just try things without using a build tool.
+
+Building and releasing plugins can make the ClojureScript ecosystem more accessible from Scittle,
+leading to greater adoption.
 
 ## Goals
 
