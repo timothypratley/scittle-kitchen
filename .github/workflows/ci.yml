@@ -15,10 +15,11 @@ jobs:
         with:
           submodules: true
 
-      - name: Set up Clojure
+      - name: Set up Clojure and Babashka
         uses: DeLaGuardo/setup-clojure@11.0
         with:
           cli: latest
+          bb: latest
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -35,40 +36,12 @@ jobs:
         run: |
           if [ -f package.json ]; then npm ci; fi
 
-      - name: Install Babashka
-        uses: babashka/babashka-setup-action@v1
+      - name: Build plugins
+        run: bb build.clj
 
-      - name: Run release build
+      - name: Release build
         run: bb release
+        working-directory: all
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: resources/public
-        continue-on-error: true
-
-      - name: Set up Git user
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Deploy to gh-pages
-        run: |
-          git fetch origin gh-pages || true
-          git switch --orphan gh-pages
-          git rm -rf .
-          cp -r resources/public/* .
-          touch .nojekyll
-          git add .
-          git commit -m "Deploy to GitHub Pages [skip ci]" || echo "Nothing to commit"
-          git push --force origin gh-pages
+      - name: Publish to gh-pages
+        run: ./publish-gh-pages.sh
