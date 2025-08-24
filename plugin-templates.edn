@@ -9,4 +9,7 @@
            :depends-on #{:scittle.reagent}}
  :tmdjs {:path "plugins/tmdjs"
          :namespaces [tech.v3.dataset]
-         :deps {com.cnuernber/tmdjs {:mvn/version "2.000-beta-10"}}}}
+         :deps {com.cnuernber/tmdjs {:mvn/version "2.002"}
+                ;; see https://github.com/cnuernber/tmdjs/issues/14
+                com.cnuernber/ham-scripted {:git/url "https://github.com/cnuernber/ham-scripted"
+                                            :sha "36b657d7bdf3d6e168cb083897efbfa9021333da"}}}}
