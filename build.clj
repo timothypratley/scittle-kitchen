@@ -5,7 +5,8 @@
   (:require [babashka.fs :as fs]
             [clojure.edn :as edn]
             [clojure.pprint :as pprint]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [hiccup.core :as hiccup]))
 
 (def plugins
   (edn/read-string (slurp "plugin-templates.edn")))
@@ -51,6 +52,7 @@
                "   ::" nm "\n"
                "   " config-map "\n"
                "   ))\n"))
+    (println "scittle-kitchen build created" (str cljs-file))
     (pretty-spit edn-file (plugin-edn nm plugin))
     (pretty-spit deps-file {:deps (or (:deps plugin) {})})))
 
@@ -76,6 +78,31 @@
 (def all-plugins
   (into {} (concat (official-plugins) (kitchen-plugins))))
 
+
+(defn generate-index-html [build plugins]
+  (let [public-dir (fs/path build "resources" "public")
+        index-file (fs/path public-dir "index.html")
+        base-url "https://timothypratley.github.io/scittle-kitchen/js/"
+        urls (for [[k _] plugins]
+               (str base-url "scittle." (name k) ".js"))
+        page [:html
+              [:head
+               [:meta {:charset "utf-8"}]
+               [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+               [:title "Scittle Kitchen Plugins"]
+               (for [url urls]
+                 [:script {:src url}])]
+              [:body
+               [:h1 "Scittle Kitchen Plugins"]
+               [:p "Available plugin scripts:"]
+               (for [url urls]
+                 [:div [:a {:href url} url]])]]]
+    (fs/create-dirs public-dir)
+    (spit (str index-file)
+          (str "<!DOCTYPE html>" \newline
+               (hiccup/html page)))
+    (println "scittle-kitchen build created" (str index-file))))
+
 (defn scittle-sci-version
   "Otherwise there will be a version conflict"
   []
@@ -85,9 +112,9 @@
 (defn local [build path]
   {:local/root (str (fs/relativize build path))})
 
-(defn generate-deps-edn
+(defn make
   "Generate a deps.edn in ./<build-name>/ with plugins, scittle, and sci on the classpath."
-  ([] (generate-deps-edn (keys all-plugins) "all"))
+  ([] (make (keys all-plugins) "all"))
   ([plugins build]
    (fs/create-dirs build)
    (let [scittle-deps {'io.github.babashka/scittle (local build "scittle")
@@ -103,6 +130,7 @@
                    :tasks '{:requires ([scittle.build :as build])
                             release {:task (scittle.build/build {})}}})
      (pretty-spit (fs/path build "deps.edn")
-                  {:deps scittle-deps}))))
+                  {:deps scittle-deps})
+  (generate-index-html build all-plugins))))
 
-(generate-deps-edn)
+(make)

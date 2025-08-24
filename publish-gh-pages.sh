@@ -12,8 +12,13 @@ fi
 cd "$PUBLISH_DIR"
 rm -fr .git
 git init
+git remote add origin $REPO_URL
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
+touch .nojekyll
 git add .
 git commit -m "Publish to gh-pages"
-git push --force $REPO_URL main:gh-pages
+git push --force origin HEAD:gh-pages
 rm -fr .git
-echo "https://$(basename -s .git "$REPO_URL")/all/resources/public/"
+REPO_PATH=$(echo "$REPO_URL" | sed -E 's#(git@github.com:|https://github.com/)##;s#\.git$##')
+echo "https://$(echo "$REPO_PATH" | sed 's#/#.github.io/#')/"
