@@ -6,7 +6,11 @@
             [clojure.edn :as edn]
             [clojure.pprint :as pprint]
             [clojure.string :as str]
-            [hiccup.core :as hiccup]))
+            [hiccup.core :as hiccup]
+            [babashka.deps :as deps]))
+
+(deps/add-deps '{:deps {camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}}})
+(require '[camel-snake-kebab.core :as csk])
 
 (def plugins
   (edn/read-string (slurp "plugin-templates.edn")))
@@ -90,8 +94,8 @@
 (defn standard-plugins []
   (let [plugin-dir (fs/path "scittle" "src" "scittle")
         plugin-files (fs/list-dir plugin-dir (complement fs/directory?))]
-    (->> (map (comp fs/file-name fs/strip-ext) plugin-files)
-         (remove #{"core"})
+    (->> (map (comp csk/->kebab-case fs/file-name fs/strip-ext) plugin-files)
+         (remove #{"core" "cljs-devtools" "nrepl"})
          (sort))))
 
 (defn generate-index-html [build]
