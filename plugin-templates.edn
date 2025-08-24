@@ -9,4 +9,4 @@
            :depends-on #{:scittle.reagent}}
  :tmdjs {:path "plugins/tmdjs"
          :namespaces [tech.v3.dataset]
-         :deps {com.cnuernber/tmdjs {:mvn/version "2.002"}}}}
+         :deps {com.cnuernber/tmdjs {:mvn/version "2.000-beta-10"}}}}
