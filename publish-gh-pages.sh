@@ -16,11 +16,6 @@ git init --initial-branch=gh-pages
 # Use GITHUB_TOKEN for CI if available, otherwise use normal remote for local/manual
 if [ -n "$GITHUB_TOKEN" ]; then
   echo "Using GITHUB_TOKEN for authentication"
-  # Try to get owner/repo from GITHUB_REPOSITORY or from git remote
-  if [ -z "$GITHUB_REPOSITORY" ]; then
-    # Extract owner/repo from the remote URL
-    GITHUB_REPOSITORY=$(echo "$REPO_URL" | sed -E 's#(git@github.com:|https://github.com/)##;s#\.git$##')
-  fi
   REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 fi
 
