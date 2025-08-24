@@ -14,6 +14,6 @@ rm -fr .git
 git init
 git add .
 git commit -m "Publish to gh-pages"
-git push --force origin gh-pages
+git push --force $REPO_URL main:gh-pages
 rm -fr .git
 echo "https://$(basename -s .git "$REPO_URL")/all/resources/public/"

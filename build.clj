@@ -54,6 +54,7 @@
     (pretty-spit edn-file (plugin-edn nm plugin))
     (pretty-spit deps-file {:deps (or (:deps plugin) {})})))
 
+(fs/create-dirs (fs/path "plugins"))
 (doseq [[k plugin] plugins]
   (write-plugin k plugin))
 
