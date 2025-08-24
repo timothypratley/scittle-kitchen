@@ -12,7 +12,13 @@ fi
 cd "$PUBLISH_DIR"
 rm -fr .git
 git init
-git remote add origin $REPO_URL
+
+# Use GITHUB_TOKEN for CI if available, otherwise use normal remote for local/manual
+if [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_REPOSITORY" ]; then
+  REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+fi
+
+git remote add origin "$REPO_URL"
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 touch .nojekyll
