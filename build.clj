@@ -90,8 +90,8 @@
   (let [plugin-dir (fs/path "scittle" "src" "scittle")
         files (fs/list-dir plugin-dir)
         plugin-files (filter #(and (= ".cljs" (fs/extension %))
-                                   (not (str/ends-with? (str %) "core.cljs"))
-                                   (not (str/includes? (str %) "impl")))
+                                   (not (str/ends-with? % "core.cljs"))
+                                   (not (str/includes? % "impl")))
                              files)]
     (-> (map (comp fs/file-name fs/strip-ext) plugin-files)
         (sort))))
@@ -104,11 +104,11 @@
         std-urls (for [nm (standard-plugins)]
                    (str base-url "scittle." nm ".js"))
         ;; Official plugins (from scittle/plugins/)
-        official-urls (for [nm (official-plugins)]
-                        (str base-url "scittle." nm ".js"))
+        official-urls (for [[k _] (official-plugins)]
+                        (str base-url "scittle." (name k) ".js"))
         ;; Community plugins (from plugins/)
-        community-urls (for [nm (kitchen-plugins)]
-                         (str base-url "scittle." nm ".js"))
+        community-urls (for [[k _] (kitchen-plugins)]
+                         (str base-url "scittle." (name k) ".js"))
         page [:html
               [:head
                [:meta {:charset "utf-8"}]
