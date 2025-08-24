@@ -3,10 +3,10 @@
 {#_#_:emmy {:path "plugins/emmy"
         :namespaces [emmy.env]
         :deps {org.mentat/emmy {:mvn/version "0.30.0"}}}
-#_#_:mathbox {:path "plugins/mathbox"
+ :mathbox {:path "plugins/mathbox"
            :namespaces [mathbox.core mathbox.primitives]
            :deps {org.mentat/mathbox.cljs {:mvn/version "0.2.0"}}
            :depends-on #{:scittle.reagent}}
- #_#_:tmdjs {:path "plugins/tmdjs"
+ :tmdjs {:path "plugins/tmdjs"
          :namespaces [tech.v3.dataset]
          :deps {com.cnuernber/tmdjs {:mvn/version "2.000-beta-10"}}}}

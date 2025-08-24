@@ -59,11 +59,23 @@ For most libraries, just add an entry to [`plugin-templates.edn`](plugin-templat
 
 ## Development
 
-Releases are done as a github Action, which pushes to the `gh-pages` branch, which is published by GitHub Pages.
+Releases are done as a GitHub Action, which pushes to the `gh-pages` branch, published by GitHub Pages.
 See [.github/workflows/release.yml](.github/workflows/release.yml).
-While developing, you can run the build locally by checking out the latest Scittle code (the GitHub Action does this automatically) `git submodule update --init --remote`,
-running `bb -f generate_plugins.clj` to generate the plugins and `deps.edn` in `all/`,
-then running `bb -d all -f build.clj release`.
+
+For local development:
+
+1. Check out the latest Scittle code (the GitHub Action does this automatically):
+  ```bash
+  git submodule update --init --remote
+  ```
+2. Build:
+  ```bash
+  ./build.sh
+  ```
+  Or build a single plugin (faster for development):
+  ```bash
+  ./build.sh <plugin-name>
+  ```
 
 ## Build Process Design
 

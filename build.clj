@@ -144,4 +144,16 @@
                   {:deps scittle-deps})
   (generate-index-html build all-plugins))))
 
-(make)
+
+;; Allow building a single plugin by name via command line argument
+(let [args *command-line-args*]
+  (if (seq args)
+    (let [plugin-key (keyword (first args))
+          plugin (get all-plugins plugin-key)]
+      (if plugin
+        (make [plugin-key] (name plugin-key))
+        (do
+          (println "Unknown plugin:" (first args))
+          (println "Available plugins:" (str/join ", " (map name (keys all-plugins))))
+          (System/exit 1))))
+    (make)))
