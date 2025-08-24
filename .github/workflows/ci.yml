@@ -44,4 +44,7 @@ jobs:
         working-directory: all
 
       - name: Publish to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: ./publish-gh-pages.sh
