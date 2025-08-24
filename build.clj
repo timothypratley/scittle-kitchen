@@ -86,33 +86,28 @@
 (def all-plugins
   (into {} (concat (official-plugins) (kitchen-plugins))))
 
-
-
-(defn standard-plugins-list []
-  ;; Find all scittle/src/scittle/*.cljs except core.cljs and impl/
+(defn standard-plugins []
   (let [plugin-dir (fs/path "scittle" "src" "scittle")
         files (fs/list-dir plugin-dir)
-        plugin-files (filter #(and (.endsWith (str %) ".cljs")
-                                   (not (.endsWith (str %) "/core.cljs"))
-                                   (not (.contains (str %) "/impl/")))
+        plugin-files (filter #(and (= ".cljs" (fs/extension %))
+                                   (not (str/ends-with? (str %) "core.cljs"))
+                                   (not (str/includes? (str %) "impl")))
                              files)]
-    (sort (map #(-> % fs/file-name (str/replace #"\\.cljs$" "")) plugin-files))))
+    (-> (map (comp fs/file-name fs/strip-ext) plugin-files)
+        (sort))))
 
-(defn generate-index-html [build plugins]
+(defn generate-index-html [build]
   (let [public-dir (fs/path build "resources" "public")
         index-file (fs/path public-dir "index.html")
         base-url "https://timothypratley.github.io/scittle-kitchen/js/"
         ;; Standard plugins (from scittle/src/scittle/*.cljs)
-        std-plugins (standard-plugins-list)
-        std-urls (for [nm std-plugins]
+        std-urls (for [nm (standard-plugins)]
                    (str base-url "scittle." nm ".js"))
         ;; Official plugins (from scittle/plugins/)
-        official-plugins-list (map name (keys (into {} (official-plugins))))
-        official-urls (for [nm official-plugins-list]
+        official-urls (for [nm (official-plugins)]
                         (str base-url "scittle." nm ".js"))
         ;; Community plugins (from plugins/)
-        community-plugins-list (map name (keys (into {} (kitchen-plugins))))
-        community-urls (for [nm community-plugins-list]
+        community-urls (for [nm (kitchen-plugins)]
                          (str base-url "scittle." nm ".js"))
         page [:html
               [:head
@@ -126,14 +121,14 @@
                [:p "Must be included before plugins"]
                [:div [:a {:href (str base-url "scittle.js")} (str base-url "scittle.js")]]
                [:h2 "Standard Plugins (built-in)"]
-               (for [[nm url] (map vector std-plugins std-urls)]
-                 [:div [:a {:href url} nm]])
+               (for [url std-urls]
+                 [:div [:a {:href url} url]])
                [:h2 "Official Plugins (from scittle/plugins/)"]
-               (for [[nm url] (map vector official-plugins-list official-urls)]
-                 [:div [:a {:href url} nm]])
+               (for [url official-urls]
+                 [:div [:a {:href url} url]])
                [:h2 "Community Plugins (from plugins/)"]
-               (for [[nm url] (map vector community-plugins-list community-urls)]
-                 [:div [:a {:href url} nm]])]]]
+               (for [url community-urls]
+                 [:div [:a {:href url} url]])]]]
     (fs/create-dirs public-dir)
     (spit (str index-file)
           (str "<!DOCTYPE html>" \newline
@@ -168,7 +163,7 @@
                             release {:task (scittle.build/build {})}}})
      (pretty-spit (fs/path build "deps.edn")
                   {:deps scittle-deps})
-  (generate-index-html build all-plugins))))
+  (generate-index-html build))))
 
 
 ;; Allow building a single plugin by name via command line argument
