@@ -1,6 +1,9 @@
 ;; Used by build.clj to generate plugin directories, code, and deps.
 {:clara-rules {:namespaces [clara.rules]
                :deps {com.cerner/clara-rules {:mvn/version "0.24.0"}}}
+ :instaparse {:namespaces [instaparse.core
+                           instaparse.transform]
+              :deps {instaparse/instaparse {:mvn/version "1.5.0"}}}
  :dataspex {:namespaces [dataspex.core
                          dataspex.hiccup
                          dataspex.panel
