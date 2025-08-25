@@ -27,7 +27,17 @@ which is a barrier for users and plugin authors.
 
 `scittle-kitchen` provides a shared build and release process for precompiled Scittle plugins.
 It uses a git submodule to always build against the latest Scittle code,
-and automatically discovers plugins in the community contributed `plugins/` directory and official `scittle/plugins/`.
+and automatically discovers plugins in the community contributed [`plugin-templates.edn`](plugin-templates.edn),
+`plugins/` directory, and official `scittle/plugins/`.
+
+The plugin template greatly reduces the boilerplate needed to add a new plugin:
+
+```edn
+ :emmy {:namespaces [emmy.env]
+        :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
+```
+
+Making it easy to add new plugins.
 
 By publishing precompiled plugins, we lower the entry barrier to try ClojureScript libraries.
 My main hope is that having more precompiled plugins available will help people experiment.
