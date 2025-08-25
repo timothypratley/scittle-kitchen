@@ -88,7 +88,8 @@
 (defn kitchen-plugins []
   (find-plugins "plugins"))
 
-(def all-plugins
+(def plugin-roots
+  "Note that kitchen plugins replace official plugins where both are defined"
   (into {} (concat (official-plugins) (kitchen-plugins))))
 
 (defn standard-plugins []
@@ -148,7 +149,7 @@
 
 (defn make
   "Generate a deps.edn in ./<build-name>/ with plugins, scittle, and sci on the classpath."
-  ([] (make (keys all-plugins) "all"))
+  ([] (make (keys plugin-roots) "all"))
   ([plugins build]
    (fs/create-dirs build)
    (let [scittle-deps {'io.github.babashka/scittle (local build "scittle")
@@ -156,7 +157,7 @@
                        'org.babashka/sci (scittle-sci-version)}
          plugin-deps (map (fn [plugin]
                             [(symbol "scittle-kitchen.plugins" (str "scittle." (name plugin)))
-                             (local build (get all-plugins plugin))])
+                             (local build (get plugin-roots plugin))])
                           plugins)
          deps (into scittle-deps plugin-deps)]
      (pretty-spit (fs/path build "bb.edn")
@@ -169,14 +170,16 @@
 
 
 ;; Allow building a single plugin by name via command line argument
-(let [args *command-line-args*]
+(let [std (set (standard-plugins))
+      args (remove std *command-line-args*)]
   (if (seq args)
-    (let [plugin-key (keyword (first args))
-          plugin (get all-plugins plugin-key)]
-      (if plugin
-        (make [plugin-key] (name plugin-key))
+    (let [plugins (mapv keyword args)
+          unknown (remove plugin-roots plugins)
+          build (first args)]
+      (if (seq unknown)
         (do
-          (println "Unknown plugin:" (first args))
-          (println "Available plugins:" (str/join ", " (map name (keys all-plugins))))
-          (System/exit 1))))
+          (println "Unknown plugin:" (str/join ", " unknown))
+          (println "Available plugins:" (str/join ", " (map name (keys plugin-roots))))
+          (System/exit 1))
+        (make plugins build)))
     (make)))

@@ -76,6 +76,10 @@ For local development:
   ```bash
   ./build.sh <plugin-name>
   ```
+  Or build multiple plugins:
+  ```bash
+  ./build.sh <plugin1> <plugin2> ...
+  ```
 
 ## Build Process Design
 
