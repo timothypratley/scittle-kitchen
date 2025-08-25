@@ -1,50 +1,52 @@
 # scittle-kitchen
 
-More plugin builds for [scittle](https://github.com/babashka/scittle).
+More plugins for [scittle](https://github.com/babashka/scittle).
 
 ## Usage
 
-Include the desired plugin build in your HTML page:
+Include `scittle.js` and the desired plugin(s) in your HTML page:
 
 ```html
 <script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.js"></script>
-<script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.dataspex.js"></script>
+<script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.geom.js"></script>
 ```
 
 See [the demo page](https://timothypratley.github.io/scittle-kitchen/) for the full list of published plugins.
 
 > [!NOTE]
-> You must use this `scittle.js` rather than the official `scittle.js` to load the plugins.
+> Only scittle-kitchen `scittle.js` can load these plugins.
 
 ## Rationale
 
-You can load `.cljs` files directly in Scittle as scripts.
-But many ClojureScript libraries have multiple namespaces and may depend on npm packages.
-Scittle plugins are compiled JavaScript from the ClojureScript library, ready to use in Scittle.
-Only a few plugins are included in the official Scittle distribution.
-Other plugins need to be built in a special way to be usable in Scittle,
-which is a barrier for users and plugin authors.
+We can lower the entry barrier to try ClojureScript libraries by publishing precompiled plugins.
+My main hope is that more plugins leads to more experiments.
+That's what I really love about Scittle, being able to just try things without using a build tool.
 
-`scittle-kitchen` provides a shared build and release process for precompiled Scittle plugins.
-It uses a git submodule to always build against the latest Scittle code,
+You can load `.cljs` files in Scittle as scripts.
+But many ClojureScript libraries have multiple namespaces and npm dependencies,
+which prevents their use in Scittle.
+Scittle plugins are compiled JavaScript from the ClojureScript library, ready to use in Scittle.
+
+Only a few plugins are included in the official Scittle distribution.
+Other plugins need to be built in a special way to be usable in Scittle.
+This is a barrier for users, and plugin authors.
+
+`scittle-kitchen` is a build and release process that publishes plugins in a publically accessible location.
+It uses a git submodule to always build against the latest Scittle,
 and automatically discovers plugins in the community contributed [`plugin-templates.edn`](plugin-templates.edn),
 `plugins/` directory, and official `scittle/plugins/`.
 
-The plugin template greatly reduces the boilerplate needed to add a new plugin:
+The plugin template avoids the tedious boilerplate normally required to add a new plugin.
+All you need to specify are the dependencies and namespaces.
+Here's the definition for [Emmy](https://github.com/mentat-collective/emmy):
 
 ```edn
  :emmy {:namespaces [emmy.env]
         :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
 ```
 
-Making it easy to add new plugins.
-
-By publishing precompiled plugins, we lower the entry barrier to try ClojureScript libraries.
-My main hope is that having more precompiled plugins available will help people experiment.
-That's what I really love about Scittle, being able to just try things without using a build tool.
-
 Building and releasing plugins can make the ClojureScript ecosystem more accessible from Scittle,
-leading to greater adoption.
+people making cool stuff, more fun, less headaches, and wider adoption.
 
 ## Goals
 
@@ -69,9 +71,6 @@ For most libraries, just add an entry to [`plugin-templates.edn`](plugin-templat
 
 ## Development
 
-Releases are done as a GitHub Action, which pushes to the `gh-pages` branch, published by GitHub Pages.
-See [.github/workflows/release.yml](.github/workflows/release.yml).
-
 For local development:
 
 1. Check out the latest Scittle code (the GitHub Action does this automatically):
@@ -90,6 +89,11 @@ For local development:
   ```bash
   ./build.sh <plugin1> <plugin2> ...
   ```
+
+## Deploying
+
+Releases are done as a GitHub Action, which pushes to the `gh-pages` branch, published by GitHub Pages.
+See [.github/workflows/release.yml](.github/workflows/release.yml).
 
 ## Build Process Design
 

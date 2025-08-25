@@ -1,5 +1,4 @@
-;; This file declares plugin templates for scittle-kitchen.
-;; It is used by generate_plugins.clj to generate plugin directories, stubs, and deps.
+;; Used by build.clj to generate plugin directories, code, and deps.
 {:dataspex {:namespaces [dataspex.core
                          dataspex.hiccup
                          dataspex.panel
