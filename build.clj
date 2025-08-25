@@ -34,7 +34,7 @@
   (let [nm (name k)
         plugin-dir (fs/path "plugins" nm)
         src-dir (fs/path plugin-dir "src" "scittle")
-        cljs-file (fs/path src-dir (str nm ".cljs"))
+        cljs-file (fs/path src-dir (str (csk/->snake_case nm) ".cljs"))
         edn-file (fs/path plugin-dir "src" "scittle_plugin.edn")
         deps-file (fs/path plugin-dir "deps.edn")
         ns-requires (str/join

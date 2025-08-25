@@ -1,5 +1,7 @@
 ;; Used by build.clj to generate plugin directories, code, and deps.
-{:dataspex {:namespaces [dataspex.core
+{:clara-rules {:namespaces [clara.rules]
+               :deps {com.cerner/clara-rules {:mvn/version "0.24.0"}}}
+ :dataspex {:namespaces [dataspex.core
                          dataspex.hiccup
                          dataspex.panel
                          dataspex.ui
