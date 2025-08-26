@@ -10,37 +10,43 @@
             [babashka.deps :as deps]
             [babashka.process :refer [shell]]))
 
+(println "scittle-kitchen build started")
+
 (deps/add-deps '{:deps {camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}}})
 (require '[camel-snake-kebab.core :as csk])
 
+;; ## Git versioning
+
+;; Full history for commit count
+
+(when (fs/exists? ".git/shallow")
+  (shell {:out :string} "git" "fetch" "--unshallow"))
+
 ;; Latest tagged Scittle
 
-(defn update-scittle-to-latest-tag []
-  (shell {:dir "scittle" :out :string} "git" "fetch" "--tags")
-  (let [latest-tag (-> (shell {:dir "scittle" :out :string} "git" "tag" "--sort=-creatordate")
-                       :out
-                       str/split-lines
-                       first)]
-    (if latest-tag
-      (let [checkout-result (shell {:dir "scittle" :out :string} "git" "checkout" latest-tag)]
-        (println (str "Checked out scittle at tag: " latest-tag))
-        (println (:out checkout-result)))
-      (println "No tag found"))))
+(shell {:dir "scittle" :out :string} "git" "fetch" "--tags")
+(let [latest-tag (-> (shell {:dir "scittle" :out :string} "git" "tag" "--sort=-creatordate")
+                     :out
+                     str/split-lines
+                     first)]
+  (if latest-tag
+    (do (println (str "scittle-kitchen build Checking out scittle at tag: " latest-tag))
+        (println (:out (shell {:dir "scittle" :out :string} "git" "checkout" latest-tag))))
+    (println "No tag found")))
 
-;; Plugins
+;; ## Helpers
 
 (defn slurp-edn [f & path]
   (cond-> (edn/read-string (slurp (str f)))
     path (get-in path)))
-
-(def plugins
-  (slurp-edn "plugin-templates.edn"))
 
 (defn pretty-spit [f x]
   (spit (str f)
         (with-out-str (binding [*print-namespace-maps* false]
                         (clojure.pprint/pprint x))))
   (println "scittle-kitchen build created" (str f)))
+
+;; ## Plugin expansion from template to file system
 
 (defn plugin-edn [nm {:keys [namespaces depends-on]}]
   (let [module (str "scittle." nm)]
@@ -94,11 +100,14 @@
     (pretty-spit edn-file (plugin-edn nm plugin))
     (pretty-spit deps-file {:deps (or (:deps plugin) {})})))
 
-(defn expand-plugin-templates []
-  (doseq [[k plugin] plugins]
-    (write-plugin k plugin)))
+;; Expand plugin-templates.edn
+
+(println "scittle-kitchen build Expanding plugin-templates.edn to plugins")
 (fs/create-dirs "plugins")
-(expand-plugin-templates)
+(doseq [[k plugin] (slurp-edn "plugin-templates.edn")]
+  (write-plugin k plugin))
+
+;; Discover Plugins from file system (more than in templates)
 
 (defn find-plugins
   "Not all plugins are generated, so look for them in the plugin directories"
@@ -165,8 +174,7 @@
                  {:version (kitchen-version)
                   :scittle {:git-sha (git-sha "scittle")
                             :git-tag (git-tag "scittle")}
-                  :scittle-kitchen {:git-sha (git-sha)
-                                    :git-tag (git-tag)}
+                  :scittle-kitchen {:git-sha (git-sha)}
                   :plugins (into {} (for [plugin plugins]
                                       [(name plugin) {:deps (plugin-deps-map (plugin-roots plugin))}]))})))
 
@@ -254,10 +262,10 @@
   {:local/root (str (fs/relativize build path))})
 
 (defn make
-  "Generate a deps.edn in ./<build-name>/ with plugins, scittle, and sci on the classpath."
+  "Generate a deps.edn in <build-name> with plugins, scittle, and sci on the classpath."
   ([] (make (keys plugin-roots) "all"))
   ([plugins build]
-   (update-scittle-to-latest-tag)
+   (println "scittle-kitchen build Preparing" build)
    (fs/create-dirs build)
    (let [scittle-deps {'io.github.babashka/scittle (local build "scittle")
                        'io.github.babashka/scittle.build (local build (fs/path "scittle" "build"))
@@ -274,7 +282,8 @@
      (pretty-spit (fs/path build "deps.edn")
                   {:deps scittle-deps})
      (write-index-html build plugins)
-     (write-manifest build plugins))))
+     (write-manifest build plugins)
+     (println "scittle-kitchen build Version" (slurp-edn (fs/path build "manifest.edn") :version) "ready to compile"))))
 
 ;; Command line arguments
 
