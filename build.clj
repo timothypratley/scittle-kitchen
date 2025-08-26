@@ -97,6 +97,8 @@
 (defn expand-plugin-templates []
   (doseq [[k plugin] plugins]
     (write-plugin k plugin)))
+(fs/create-dirs "plugins")
+(expand-plugin-templates)
 
 (defn find-plugins
   "Not all plugins are generated, so look for them in the plugin directories"
@@ -256,8 +258,6 @@
   ([] (make (keys plugin-roots) "all"))
   ([plugins build]
    (update-scittle-to-latest-tag)
-   (fs/create-dirs "plugins")
-   (expand-plugin-templates)
    (fs/create-dirs build)
    (let [scittle-deps {'io.github.babashka/scittle (local build "scittle")
                        'io.github.babashka/scittle.build (local build (fs/path "scittle" "build"))
