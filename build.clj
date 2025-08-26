@@ -283,7 +283,7 @@
                   {:deps scittle-deps})
      (write-index-html build plugins)
      (write-manifest build plugins)
-     (println "scittle-kitchen build Version" (slurp-edn (fs/path build "manifest.edn") :version) "ready to compile"))))
+     (println "scittle-kitchen build Version" (kitchen-version) "ready to compile"))))
 
 ;; Command line arguments
 
