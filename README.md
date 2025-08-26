@@ -11,7 +11,7 @@ Include `scittle.js` and the desired plugin(s) in your HTML page:
 <script src="https://timothypratley.github.io/scittle-kitchen/js/scittle.geom.js"></script>
 ```
 
-See [the demo page](https://timothypratley.github.io/scittle-kitchen/) for the full list of published plugins.
+See [the release page](https://timothypratley.github.io/scittle-kitchen/) for the full list of published plugins.
 
 > [!NOTE]
 > Only scittle-kitchen `scittle.js` can load these plugins.
@@ -136,6 +136,12 @@ Below details how `scittle-kitchen` achieves this situation by preparing the dep
   `deps.edn` is required when scittle/build launches Clojure to do the shadow-cljs build.
   The default build is `all`, which includes all plugins.
   Inside that directory, `bb release` will produce a build with all plugins. This enables easy experimentation and custom builds.
+
+- **Versioning Scheme:**
+  Each `scittle-kitchen` build is assigned a version of the form: MAJOR.MINOR.PATCH-BUILD
+  - `MAJOR.MINOR.PATCH` is taken from the latest Scittle tag (e.g., 0.7.27)
+  - `BUILD` is the git commit count of the scittle-kitchen repository at build time
+  For example, if the latest Scittle tag is `0.7.27` and the current commit count is `1234`, the version will be `0.7.27-1234`
 
 - **Future Improvements:**
   - It might be better to have the build process checkout the latest Scittle code itself,

@@ -6,14 +6,35 @@
             [clojure.edn :as edn]
             [clojure.pprint :as pprint]
             [clojure.string :as str]
-            [hiccup.core :as hiccup]
-            [babashka.deps :as deps]))
+            [hiccup2.core :as hiccup]
+            [babashka.deps :as deps]
+            [babashka.process :refer [shell]]))
 
 (deps/add-deps '{:deps {camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}}})
 (require '[camel-snake-kebab.core :as csk])
 
+;; Latest tagged Scittle
+
+(defn update-scittle-to-latest-tag []
+  (shell {:dir "scittle" :out :string} "git" "fetch" "--tags")
+  (let [latest-tag (-> (shell {:dir "scittle" :out :string} "git" "tag" "--sort=-creatordate")
+                       :out
+                       str/split-lines
+                       first)]
+    (if latest-tag
+      (let [checkout-result (shell {:dir "scittle" :out :string} "git" "checkout" latest-tag)]
+        (println (str "Checked out scittle at tag: " latest-tag))
+        (println (:out checkout-result)))
+      (println "No tag found"))))
+
+;; Plugins
+
+(defn slurp-edn [f & path]
+  (cond-> (edn/read-string (slurp (str f)))
+    path (get-in path)))
+
 (def plugins
-  (edn/read-string (slurp "plugin-templates.edn")))
+  (slurp-edn "plugin-templates.edn"))
 
 (defn pretty-spit [f x]
   (spit (str f)
@@ -73,9 +94,9 @@
     (pretty-spit edn-file (plugin-edn nm plugin))
     (pretty-spit deps-file {:deps (or (:deps plugin) {})})))
 
-(fs/create-dirs (fs/path "plugins"))
-(doseq [[k plugin] plugins]
-  (write-plugin k plugin))
+(defn expand-plugin-templates []
+  (doseq [[k plugin] plugins]
+    (write-plugin k plugin)))
 
 (defn find-plugins
   "Not all plugins are generated, so look for them in the plugin directories"
@@ -104,50 +125,128 @@
          (remove #{"core" "cljs-devtools" "nrepl"})
          (sort))))
 
-(defn generate-index-html [build]
-  (let [public-dir (fs/path build "resources" "public")
+;; Versioning
+
+(defn git-sha
+  ([] (git-sha nil))
+  ([dir]
+   (let [opts (cond-> {:out :string :continue true}
+                dir (assoc :dir dir))
+         result (shell opts "git" "rev-parse" "HEAD")]
+     (if (= 0 (:exit result))
+       (str/trim (:out result))
+       (throw (ex-info (str "git rev-parse failed" (when dir (str " in " dir))) {:result result}))))))
+
+(defn plugin-deps-map [plugin-path]
+  (slurp-edn (fs/path plugin-path "deps.edn") :deps))
+
+(defn git-tag
+  ([] (git-tag nil))
+  ([dir]
+   (let [opts (cond-> {:out :string :continue true}
+                dir (assoc :dir dir))
+         result (shell opts "git" "describe" "--tags" "--abbrev=0")]
+     (cond
+       (= 0 (:exit result)) (str/trim (:out result))
+       (= 128 (:exit result)) nil ; no tags found
+       :else (throw (ex-info (str "git describe --tags failed" (when dir (str " in " dir))) {:result result}))))))
+
+(defn kitchen-version []
+  (let [scittle-version (git-tag "scittle")
+        [major minor patch] (str/split scittle-version #"\.")
+        commit-count (-> (shell {:out :string} "git" "rev-list" "--count" "HEAD") :out str/trim)]
+    (str major "." minor "." patch "-" commit-count)))
+
+(defn write-manifest [build plugins]
+  (let [public-dir (fs/path build "resources" "public")]
+    (pretty-spit (fs/path public-dir "manifest.edn")
+                 {:version (kitchen-version)
+                  :scittle {:git-sha (git-sha "scittle")
+                            :git-tag (git-tag "scittle")}
+                  :scittle-kitchen {:git-sha (git-sha)
+                                    :git-tag (git-tag)}
+                  :plugins (into {} (for [plugin plugins]
+                                      [(name plugin) {:deps (plugin-deps-map (plugin-roots plugin))}]))})))
+
+;; Landing page
+
+(defn write-index-html [build plugins]
+  (let [plugins (set plugins)
+        public-dir (fs/path build "resources" "public")
         index-file (fs/path public-dir "index.html")
         base-url "https://timothypratley.github.io/scittle-kitchen/js/"
         ;; Standard plugins (from scittle/src/scittle/*.cljs)
         std-urls (for [nm (standard-plugins)]
                    (str base-url "scittle." nm ".js"))
         ;; Official plugins (from scittle/plugins/)
-        official-urls (for [[k _] (official-plugins)]
+        official-urls (for [[k _] (official-plugins)
+                            :when (plugins k)]
                         (str base-url "scittle." (name k) ".js"))
         ;; Community plugins (from plugins/)
-        community-urls (for [[k _] (kitchen-plugins)]
+        community-urls (for [[k _] (kitchen-plugins)
+                             :when (plugins k)]
                          (str base-url "scittle." (name k) ".js"))
+        build-date (.format (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm z")
+                            (java.time.ZonedDateTime/now (java.time.ZoneId/of "UTC")))
+        std-count (count std-urls)
+        official-count (count official-urls)
+        community-count (count community-urls)
         page [:html
               [:head
                [:meta {:charset "utf-8"}]
                [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
                [:title "Scittle Kitchen Plugins"]
+               [:link {:rel "icon" :type "image/x-icon" :href "favicon.ico"}]
+               [:link {:rel "stylesheet" :href "styles.css"}]
                (for [url (concat std-urls official-urls community-urls)]
                  [:script {:src url}])]
               [:body
                [:h1 "Scittle Kitchen"]
-               [:p "Must be included before plugins"]
+               [:div {:style "font-size:1.15em; margin-top:0.5em;"}
+                [:div "A collection of precompiled ClojureScript plugins for Scittle."]
+                [:div {:style "margin:1em 0 0.5em 0;"}
+                 "Usage:"]
+                [:pre {:style "background:#f4f4f4; padding:1em; border-radius:6px; overflow-x:auto;"}
+                 (str "<script src=\"https://timothypratley.github.io/scittle-kitchen/js/scittle.js\"></script>\n"
+                      "<script src=\"https://timothypratley.github.io/scittle-kitchen/js/scittle.geom.js\"></script>")]
+                [:div {:style "margin-top:0.5em;"}
+                 "See the "
+                 [:a {:href "https://github.com/timothypratley/scittle-kitchen#readme" :target "_blank"} "GitHub README"]
+                 " for more info or to contribute your own plugin."]]
+               [:p (str "Version: " (kitchen-version))
+                [:a.manifest-link {:href "manifest.edn"} "manifest.edn"]]
+               [:h2 "Scittle build that can use kitchen plugins"]
                [:div [:a {:href (str base-url "scittle.js")} (str base-url "scittle.js")]]
-               [:h2 "Standard Plugins (built-in)"]
-               (for [url std-urls]
+               [:h2 (str "Community Plugins (" community-count ")")]
+               [:p {:class "section-desc"} "More plugins, compiled and ready for you to use."]
+               (for [url community-urls]
                  [:div [:a {:href url} url]])
-               [:h2 "Official Plugins (from scittle/plugins/)"]
+               [:h2 (str "Official Plugins (" official-count ")")]
+               [:p {:class "section-desc"} "In the Scittle repository, but not published as part of Scittle."]
                (for [url official-urls]
                  [:div [:a {:href url} url]])
-               [:h2 "Community Plugins (from plugins/)"]
-               (for [url community-urls]
-                 [:div [:a {:href url} url]])]]]
+               [:h2 (str "Standard Plugins (" std-count ")")]
+               [:p {:class "section-desc"} "Always included with Scittle."]
+               (for [url std-urls]
+                 [:div [:a {:href url} url]])
+               [:footer {:style "margin-top:3em; text-align:center; color:#888; font-size:0.95em;"}
+                [:div [:a {:href "https://github.com/timothypratley/scittle-kitchen" :target "_blank"} "GitHub Repository"] " | "
+                 [:span "License: EPL-1.0"] " | "
+                 [:span (str "Last updated: " build-date " UTC")]]]]]]
     (fs/create-dirs public-dir)
     (spit (str index-file)
           (str "<!DOCTYPE html>" \newline
                (hiccup/html page)))
+    (fs/copy "styles.css" (fs/path public-dir "styles.css") {:replace-existing true})
+    (fs/copy "favicon.ico" (fs/path public-dir "favicon.ico") {:replace-existing true})
     (println "scittle-kitchen build created" (str index-file))))
+
+;; Build
 
 (defn scittle-sci-version
   "Otherwise there will be a version conflict"
   []
-  (get-in (edn/read-string (slurp "scittle/deps.edn"))
-          [:deps 'org.babashka/sci]))
+  (slurp-edn "scittle/deps.edn" :deps 'org.babashka/sci))
 
 (defn local [build path]
   {:local/root (str (fs/relativize build path))})
@@ -156,6 +255,9 @@
   "Generate a deps.edn in ./<build-name>/ with plugins, scittle, and sci on the classpath."
   ([] (make (keys plugin-roots) "all"))
   ([plugins build]
+   (update-scittle-to-latest-tag)
+   (fs/create-dirs "plugins")
+   (expand-plugin-templates)
    (fs/create-dirs build)
    (let [scittle-deps {'io.github.babashka/scittle (local build "scittle")
                        'io.github.babashka/scittle.build (local build (fs/path "scittle" "build"))
@@ -171,10 +273,11 @@
                             release {:task (scittle.build/build {})}}})
      (pretty-spit (fs/path build "deps.edn")
                   {:deps scittle-deps})
-  (generate-index-html build))))
+     (write-index-html build plugins)
+     (write-manifest build plugins))))
 
+;; Command line arguments
 
-;; Allow building a single plugin by name via command line argument
 (let [std (set (standard-plugins))
       args (remove std *command-line-args*)]
   (if (seq args)
