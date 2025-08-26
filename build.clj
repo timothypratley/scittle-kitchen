@@ -26,9 +26,14 @@
     [{:name (symbol "scittle" nm)
       :namespaces namespaces
       :js (str "./scittle." nm ".js")
-      :shadow-config {:modules {(keyword module) {:init-fn (symbol module "init")
-                                                  :depends-on (into #{:scittle} depends-on)
-                                                  :entries namespaces}}}}]))
+      :shadow-config
+      {:modules
+       {(keyword module)
+        {:init-fn (symbol module "init")
+         :depends-on (into #{:scittle}
+                           (for [k depends-on]
+                             (keyword (str "scittle." (name k)))))
+         :entries namespaces}}}}]))
 
 (defn write-plugin [k plugin]
   (let [nm (name k)

@@ -1,9 +1,21 @@
 ;; Used by build.clj to generate plugin directories, code, and deps.
-{:clara-rules {:namespaces [clara.rules]
+{:asami {:namespaces [asami.core
+                      asami.analytics]
+         :deps {org.clojars.quoll/asami {:mvn/version "2.3.4"}}}
+ #_#_:asami-loom {:depends-on #{:loom}
+              :namespaces [asami-loom.index
+                           asami-loom.label
+                           asami-loom.multi-graph]
+              :deps {org.clojars.quoll/asami-loom {:mvn/version "0.3.1"}}}
+ :clara-rules {:namespaces [clara.rules]
                :deps {com.cerner/clara-rules {:mvn/version "0.24.0"}}}
- :instaparse {:namespaces [instaparse.core
-                           instaparse.transform]
-              :deps {instaparse/instaparse {:mvn/version "1.5.0"}}}
+ :cljs-bean {:namespaces [cljs-bean.core]
+             :deps {cljs-bean/cljs-bean {:mvn/version "1.9.0"}}}
+ #_#_:cljs-http {:depends-on #{:core-async}
+             :namespaces [cljs-http.core]
+             :deps {cljs-http/cljs-http {:mvn/version "0.1.49"}}}
+ #_#_:core-async {:namespaces [cljs.core.async]
+              :deps {org.clojure/core.async {:mvn/version "1.8.741"}}}
  :dataspex {:namespaces [dataspex.core
                          dataspex.hiccup
                          dataspex.panel
@@ -12,18 +24,36 @@
                          phosphor.icons]
             :deps {no.cjohansen/dataspex {:mvn/version "2025.06.8"}
                    no.cjohansen/phosphor-clj {:mvn/version "2025.04.16"}}
-            :depends-on #{:scittle.datascript}}
+            :depends-on #{:datascript}}
  :emmy {:namespaces [emmy.env]
         :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
- :mathbox {:namespaces [mathbox.core mathbox.primitives]
-           :deps {org.mentat/mathbox.cljs {:mvn/version "0.2.2"}}
-           :depends-on #{:scittle.reagent}}
+ :eql {:namespaces [edn-query-language.core]
+       :deps {edn-query-language/eql {:mvn/version "2021.07.18"}}}
  :geom {:namespaces [thi.ng.geom.viz.core
                      thi.ng.geom.svg.core
                      thi.ng.geom.vector
                      thi.ng.color.core
                      thi.ng.math.core]
         :deps {thi.ng/geom {:mvn/version "1.0.1"}}}
+ :instaparse {:namespaces [instaparse.core
+                           instaparse.transform]
+              :deps {instaparse/instaparse {:mvn/version "1.5.0"}}}
+ :kixi-stats {:namespaces [kixi.stats.core
+                           kixi.stats.distribution
+                           kixi.stats.test]
+              :deps {kixi/stats {:mvn/version "0.5.7"}}}
+ :loom {:namespaces [loom.graph
+                     loom.alg
+                     loom.attr
+                     loom.label
+                     loom.derived]
+        :deps {aysylu/loom {:mvn/version "1.0.2"}}}
+ :mathbox {:namespaces [mathbox.core
+                        mathbox.primitives]
+           :deps {org.mentat/mathbox.cljs {:mvn/version "0.2.2"}}
+           :depends-on #{:reagent}}
+ #_#_:quil {:namespaces [quil.core]
+            :deps {quil/quil {:mvn/version "4.3.1563"}}}
  :tmdjs {:namespaces [tech.v3.dataset]
          :deps {com.cnuernber/tmdjs {:mvn/version "2.002"}
                 ;; see https://github.com/cnuernber/tmdjs/issues/14
