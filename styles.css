@@ -1,0 +1,66 @@
+/* scittle-kitchen styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap');
+
+body {
+  font-family: 'Fira Sans', Arial, sans-serif;
+  background: #f8fafc;
+  color: #222;
+  margin: 0;
+  padding: 0 0 3em 0;
+}
+
+h1 {
+  background: #22223b;
+  color: #fff;
+  margin: 0;
+  padding: 1.2em 0 0.7em 0;
+  text-align: center;
+  letter-spacing: 0.04em;
+  font-size: 2.2em;
+}
+
+h2 {
+  color: #4a4e69;
+  margin-top: 2em;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.2em;
+}
+
+p.version {
+  text-align: center;
+  margin: 1em 0 0.5em 0;
+}
+
+a {
+  color: #22223b;
+  text-decoration: none;
+  border-bottom: 1px dotted #4a4e69;
+  transition: color 0.2s, border 0.2s;
+}
+
+a:hover {
+  color: #9a8c98;
+  border-bottom: 1px solid #9a8c98;
+}
+
+.manifest-link {
+  margin-left: 1em;
+  font-size: 0.95em;
+  color: #4a4e69;
+}
+
+.div {
+  margin: 0.5em 0;
+}
+
+body > div, body > p, body > h2 {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 1.3em; }
+  h2 { font-size: 1.1em; }
+  body { padding: 0 0.5em 2em 0.5em; }
+}

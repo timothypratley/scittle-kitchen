@@ -1,0 +1,9 @@
+;; For previewing the HTML output
+{:deps {org.babashka/http-server {:mvn/version "0.1.13"}}
+ :tasks
+ {:requires ([babashka.http-server :as http]
+             [babashka.fs :as fs])
+  serve {:doc "Serve static assets"
+         :requires ([babashka.http-server :as server])
+         :task (server/exec {:port 1337
+                             :dir "all/resources/public"})}}}
