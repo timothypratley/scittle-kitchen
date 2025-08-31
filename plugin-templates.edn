@@ -3,19 +3,19 @@
                       asami.analytics]
          :deps {org.clojars.quoll/asami {:mvn/version "2.3.4"}}}
  #_#_:asami-loom {:depends-on #{:loom}
-              :namespaces [asami-loom.index
-                           asami-loom.label
-                           asami-loom.multi-graph]
-              :deps {org.clojars.quoll/asami-loom {:mvn/version "0.3.1"}}}
- :clara-rules {:namespaces [clara.rules]
-               :deps {com.cerner/clara-rules {:mvn/version "0.24.0"}}}
+                  :namespaces [asami-loom.index
+                               asami-loom.label
+                               asami-loom.multi-graph]
+                  :deps {org.clojars.quoll/asami-loom {:mvn/version "0.3.1"}}}
  :cljs-bean {:namespaces [cljs-bean.core]
              :deps {cljs-bean/cljs-bean {:mvn/version "1.9.0"}}}
+ :clara-rules {:namespaces [clara.rules]
+               :deps {com.cerner/clara-rules {:mvn/version "0.24.0"}}}
  #_#_:cljs-http {:depends-on #{:core-async}
-             :namespaces [cljs-http.core]
-             :deps {cljs-http/cljs-http {:mvn/version "0.1.49"}}}
+                 :namespaces [cljs-http.core]
+                 :deps {cljs-http/cljs-http {:mvn/version "0.1.49"}}}
  #_#_:core-async {:namespaces [cljs.core.async]
-              :deps {org.clojure/core.async {:mvn/version "1.8.741"}}}
+                  :deps {org.clojure/core.async {:mvn/version "1.8.741"}}}
  :dataspex {:namespaces [dataspex.core
                          dataspex.hiccup
                          dataspex.panel
@@ -25,6 +25,8 @@
             :deps {no.cjohansen/dataspex {:mvn/version "2025.06.8"}
                    no.cjohansen/phosphor-clj {:mvn/version "2025.04.16"}}
             :depends-on #{:datascript}}
+ :devtools {:namespaces [devtools.core]
+            :deps {binaryage/devtools {:mvn/version "1.0.7"}}}
  :emmy {:namespaces [emmy.env]
         :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
  :eql {:namespaces [edn-query-language.core]
