@@ -25,8 +25,6 @@
             :deps {no.cjohansen/dataspex {:mvn/version "2025.06.8"}
                    no.cjohansen/phosphor-clj {:mvn/version "2025.04.16"}}
             :depends-on #{:datascript}}
- :devtools {:namespaces [devtools.core]
-            :deps {binaryage/devtools {:mvn/version "1.0.7"}}}
  :emmy {:namespaces [emmy.env]
         :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
  :eql {:namespaces [edn-query-language.core]

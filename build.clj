@@ -133,7 +133,7 @@
   (let [plugin-dir (fs/path "scittle" "src" "scittle")
         plugin-files (fs/list-dir plugin-dir (complement fs/directory?))]
     (->> (map (comp csk/->kebab-case fs/file-name fs/strip-ext) plugin-files)
-         (remove #{"core" "cljs-devtools" "nrepl"})
+         (remove #{"core"})
          (sort))))
 
 ;; Versioning
