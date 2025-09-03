@@ -1,0 +1,22 @@
+{
+  "name": "scittle-kitchen",
+  "version": "0.7.27-34",
+  "files": [
+    "all/resources/public/js"
+  ],
+  "description": "Compiled ClojureScript plugins for Scittle",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timothypratley/scittle-kitchen.git"
+  },
+  "keywords": [
+    "clojurescript",
+    "clojure",
+    "scittle"
+  ],
+  "license": "EPL-1.0",
+  "bugs": {
+    "url": "https://github.com/timothypratley/scittle-kitchen/issues"
+  },
+  "homepage": "https://github.com/timothypratley/scittle-kitchen#readme"
+}

@@ -50,18 +50,17 @@ people making cool stuff, more fun, less headaches, and wider adoption.
 
 ## Goals
 
-- Publish precompiled plugins ready for immediate use
-- Encourage and support community-contributed plugins
-- Stay up-to-date with upstream Scittle releases
-- Avoid interfering with Scittle’s normal build and release process
-- **Endorsement to help with plugin adoption and visibility**
-  - Under the babashka organization
+- Publish precompiled plugins ready for immediate use DONE
+- Encourage and support community-contributed plugins ONGOING
+- Stay up-to-date with upstream Scittle releases YES
+- Avoid interfering with Scittle’s normal build and release process YES
+- **Endorsement to help with plugin adoption and visibility** NOT YET
+  - Move repo to the Babashka organization
   - Linked from Scittle's README
-- Minimize maintenance burden on @borkdude
-- Automate the release process
-- Keep up with latest Scittle releases
-- Keep up with latest plugin dependencies
-- Support multiple scittle.js builds with different plugin sets
+- Minimize maintenance burden on @borkdude YES
+- Automate the release process DONE
+- Keep up with latest plugin dependencies MANUAL
+- Support multiple scittle.js builds with different plugin sets DONE
 
 ## Contributing
 
@@ -164,3 +163,12 @@ Below details how `scittle-kitchen` achieves this situation by preparing the dep
 - Shouldn't all plugins have their own directory/edn file? YES to enable standalone building.
   But we can make it more convenient by generating from a template.
 - Should it produce scittle-kitchen.js or just scittle.js or several flavors (is there an advantage to excluding plugins)? TBD. I think it should have a different name to avoid confusion with the official scittle.js, but it's easier to just leave it alone.
+
+## Credits
+
+Scittle by Michiel Borkent [borkdude](https://github.com/borkdude).
+Idea by Arne Brasseur a.k.a [plexus](https://github.com/plexus).
+
+## License
+
+Distributed under the EPL License. See LICENSE.
