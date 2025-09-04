@@ -43,7 +43,7 @@ jobs:
         run: bb release
 
       - name: NPM Publish
-        run: npm publish
+        run: npm publish --tag next
 
       - name: Publish to gh-pages
         env:
