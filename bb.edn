@@ -23,8 +23,7 @@
 
   release {:doc "Makes a release ready for npm publish"
            :task (do (run 'set-version)
-                     (run 'build)
-                     (run 'tag))}
+                     (run 'build))}
 
   serve {:doc "Serve static assets"
          :requires ([babashka.http-server :as server])
