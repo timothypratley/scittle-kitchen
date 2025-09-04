@@ -1,8 +1,8 @@
 {
   "name": "scittle-kitchen",
-  "version": "0.7.27-34",
+  "version": "0.7.27-35",
   "files": [
-    "all/resources/public/js"
+    "all"
   ],
   "description": "Compiled ClojureScript plugins for Scittle",
   "repository": {

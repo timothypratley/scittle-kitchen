@@ -1,8 +1,31 @@
 ;; For previewing the HTML output
 {:deps {org.babashka/http-server {:mvn/version "0.1.13"}}
+ :paths ["src"]
  :tasks
  {:requires ([babashka.http-server :as http]
-             [babashka.fs :as fs])
+             [babashka.fs :as fs]
+             [scittle-kitchen.build :as build])
+
+  build {:doc "Make the JavaScript"
+         :task (apply build/-main *command-line-args*)}
+
+  set-version {:doc "Set package.json"
+               :task (let [v (build/kitchen-version)]
+                       (shell "npm" "version" (subs v 1)
+                              "--no-git-tag-version"
+                              "--allow-same-version"))}
+
+  tag {:doc "sets the git tag"
+       :task (let [v (build/kitchen-version)]
+               (shell "git" "tag"
+                      "-a" v
+                      "-m" (str "Release version " v)))}
+
+  release {:doc "Makes a release ready for npm publish"
+           :task (do (run 'set-version)
+                     (run 'build)
+                     (run 'tag))}
+
   serve {:doc "Serve static assets"
          :requires ([babashka.http-server :as server])
          :task (server/exec {:port 1337

@@ -78,15 +78,15 @@ For local development:
   ```
 2. Build:
   ```bash
-  ./build.sh
+  bb build
   ```
   Or build a single plugin (faster for development):
   ```bash
-  ./build.sh <plugin-name>
+  bb build <plugin-name>
   ```
   Or build multiple plugins:
   ```bash
-  ./build.sh <plugin1> <plugin2> ...
+  bb build <plugin1> <plugin2> ...
   ```
 
 ## Deploying
@@ -116,7 +116,7 @@ Below details how `scittle-kitchen` achieves this situation by preparing the dep
 
 - **Automatic Plugin Generation:**
   Problem: we want to avoid boilerplate and make it easy to add new plugins.
-  Solution: the [`build.clj`](build.clj) script generates plugins from a concise data description in [`plugin-templates.edn`](plugin-templates.edn).
+  Solution: the [`build.clj`](src/scittle_kitchen/build.clj) script generates plugins from a concise data description in [`plugin-templates.edn`](plugin-templates.edn).
   This works for simple plugins.
   For most libraries, just to `plugin-templates.edn`.
   If your plugin requires more complex setup, you can create a full plugin directory in `plugins/` rather than generating it,
@@ -129,7 +129,7 @@ Below details how `scittle-kitchen` achieves this situation by preparing the dep
 
 - **Separate build directories:**
   Problem: we want to be able to build different versions of Scittle with different plugin sets.
-  Solution: [`build.clj`](build.clj) can generate multiple build directories with different sets of plugins.
+  Solution: [`build.clj`](src/scittle_kitchen/build.clj) can generate multiple build directories with different sets of plugins.
   Each build directory has its own `deps.edn` and `bb.edn`.
   Note that both are required. scittle/build is babashka only, so it needs to be in `bb.edn`.
   `deps.edn` is required when scittle/build launches Clojure to do the shadow-cljs build.

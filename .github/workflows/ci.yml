@@ -1,12 +1,11 @@
 
 name: CI
 permissions:
+  id-token: write  # Required for OIDC
   contents: write
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
 
 jobs:
@@ -35,17 +34,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Install npm dependencies
-        run: |
-          if [ -f package.json ]; then npm ci; fi
-
-      - name: Build plugins
-        run: bb build.clj
-
-      - name: Release build
+      - name: Build and release plugins
         run: bb release
-        working-directory: all
+
+      - name: Publish
+        run: npm publish
 
       - name: Publish to gh-pages
         env:

@@ -1,6 +1,4 @@
-#!/usr/bin/env bb
-
-(ns build
+(ns scittle-kitchen.build
   "A way to build more plugins for scittle"
   (:require [babashka.fs :as fs]
             [clojure.edn :as edn]
@@ -10,41 +8,37 @@
             [babashka.deps :as deps]
             [babashka.process :refer [shell]]))
 
-(println "scittle-kitchen build started")
-
 (deps/add-deps '{:deps {camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}}})
 (require '[camel-snake-kebab.core :as csk])
 
 ;; ## Git versioning
 
-;; Full history for commit count
+(defn ensure-latest-scittle []
+  ;; Full history for commit count
+  (when (fs/exists? ".git/shallow")
+    (shell {:out :string} "git" "fetch" "--unshallow"))
 
-(when (fs/exists? ".git/shallow")
-  (shell {:out :string} "git" "fetch" "--unshallow"))
-
-;; Latest tagged Scittle
-
-(shell {:dir "scittle" :out :string} "git" "fetch" "--tags")
-(let [latest-tag (-> (shell {:dir "scittle" :out :string} "git" "tag" "--sort=-creatordate")
-                     :out
-                     str/split-lines
-                     first)]
-  (if latest-tag
-    (do (println (str "scittle-kitchen build Checking out scittle at tag: " latest-tag))
-        (println (:out (shell {:dir "scittle" :out :string} "git" "checkout" latest-tag))))
-    (println "No tag found")))
+  ;; Latest tagged Scittle
+  (shell {:dir "scittle" :out :string} "git" "fetch" "--tags")
+  (let [latest-tag (-> (shell {:dir "scittle" :out :string} "git" "tag" "--sort=-creatordate")
+                       :out
+                       str/split-lines
+                       first)]
+    (if latest-tag
+      (do (println (str "scittle-kitchen build Checking out scittle at tag: " latest-tag))
+          (println (:out (shell {:dir "scittle" :out :string} "git" "checkout" latest-tag))))
+      (println "No tag found"))))
 
 ;; ## Helpers
 
 (defn slurp-edn [f & path]
-  (cond-> (edn/read-string (slurp (str f)))
+  (cond-> (edn/read-string (slurp f))
     path (get-in path)))
 
 (defn pretty-spit [f x]
-  (spit (str f)
-        (with-out-str (binding [*print-namespace-maps* false]
-                        (clojure.pprint/pprint x))))
-  (println "scittle-kitchen build created" (str f)))
+  (spit f (with-out-str (binding [*print-namespace-maps* false]
+                          (clojure.pprint/pprint x))))
+  (println "scittle-kitchen build Created" (str f)))
 
 ;; ## Plugin expansion from template to file system
 
@@ -64,11 +58,11 @@
 
 (defn write-plugin [k plugin]
   (let [nm (name k)
-        plugin-dir (fs/path "plugins" nm)
-        src-dir (fs/path plugin-dir "src" "scittle")
-        cljs-file (fs/path src-dir (str (csk/->snake_case nm) ".cljs"))
-        edn-file (fs/path plugin-dir "src" "scittle_plugin.edn")
-        deps-file (fs/path plugin-dir "deps.edn")
+        plugin-dir (fs/file "plugins" nm)
+        src-dir (fs/file plugin-dir "src" "scittle")
+        cljs-file (fs/file src-dir (str (csk/->snake_case nm) ".cljs"))
+        edn-file (fs/file plugin-dir "src" "scittle_plugin.edn")
+        deps-file (fs/file plugin-dir "deps.edn")
         ns-requires (str/join
                      "\n    "
                      (for [ns (:namespaces plugin)]
@@ -96,16 +90,15 @@
                "   ::" nm "\n"
                "   " config-map "\n"
                "   ))\n"))
-    (println "scittle-kitchen build created" (str cljs-file))
+    (println "scittle-kitchen build Created" (str cljs-file))
     (pretty-spit edn-file (plugin-edn nm plugin))
     (pretty-spit deps-file {:deps (or (:deps plugin) {})})))
 
-;; Expand plugin-templates.edn
-
-(println "scittle-kitchen build Expanding plugin-templates.edn to plugins")
-(fs/create-dirs "plugins")
-(doseq [[k plugin] (slurp-edn "plugin-templates.edn")]
-  (write-plugin k plugin))
+(defn expand-plugin-tempalates []
+  (println "scittle-kitchen build Expanding plugin-templates.edn to plugins")
+  (fs/create-dirs "plugins")
+  (doseq [[k plugin] (slurp-edn "plugin-templates.edn")]
+    (write-plugin k plugin)))
 
 ;; Discover Plugins from file system (more than in templates)
 
@@ -116,7 +109,7 @@
        (map fs/file-name)
        (remove #{"demo"})
        (map (fn [name]
-              [(keyword name) (fs/path base name)]))
+              [(keyword name) (fs/file base name)]))
        (sort)))
 
 (defn official-plugins []
@@ -125,18 +118,18 @@
 (defn kitchen-plugins []
   (find-plugins "plugins"))
 
-(def plugin-roots
+(defn find-plugin-roots []
   "Note that kitchen plugins replace official plugins where both are defined"
   (into {} (concat (official-plugins) (kitchen-plugins))))
 
 (defn standard-plugins []
-  (let [plugin-dir (fs/path "scittle" "src" "scittle")
+  (let [plugin-dir (fs/file "scittle" "src" "scittle")
         plugin-files (fs/list-dir plugin-dir (complement fs/directory?))]
     (->> (map (comp csk/->kebab-case fs/file-name fs/strip-ext) plugin-files)
          (remove #{"core"})
          (sort))))
 
-;; Versioning
+;; ## Versioning
 
 (defn git-sha
   ([] (git-sha nil))
@@ -149,7 +142,7 @@
        (throw (ex-info (str "git rev-parse failed" (when dir (str " in " dir))) {:result result}))))))
 
 (defn plugin-deps-map [plugin-path]
-  (slurp-edn (fs/path plugin-path "deps.edn") :deps))
+  (slurp-edn (fs/file plugin-path "deps.edn") :deps))
 
 (defn git-tag
   ([] (git-tag nil))
@@ -168,9 +161,9 @@
         commit-count (-> (shell {:out :string} "git" "rev-list" "--count" "HEAD") :out str/trim)]
     (str major "." minor "." patch "-" commit-count)))
 
-(defn write-manifest [build plugins]
-  (let [public-dir (fs/path build "resources" "public")]
-    (pretty-spit (fs/path public-dir "manifest.edn")
+(defn write-manifest [build plugins plugin-roots]
+  (let [public-dir (fs/file build "resources" "public")]
+    (pretty-spit (fs/file public-dir "manifest.edn")
                  {:version (kitchen-version)
                   :scittle {:git-sha (git-sha "scittle")
                             :git-tag (git-tag "scittle")}
@@ -178,12 +171,12 @@
                   :plugins (into {} (for [plugin plugins]
                                       [(name plugin) {:deps (plugin-deps-map (plugin-roots plugin))}]))})))
 
-;; Landing page
+;; ## Landing page
 
 (defn write-index-html [build plugins]
   (let [plugins (set plugins)
-        public-dir (fs/path build "resources" "public")
-        index-file (fs/path public-dir "index.html")
+        public-dir (fs/file build "resources" "public")
+        index-file (fs/file public-dir "index.html")
         base-url "https://timothypratley.github.io/scittle-kitchen/js/"
         ;; Standard plugins (from scittle/src/scittle/*.cljs)
         std-urls (for [nm (standard-plugins)]
@@ -226,19 +219,46 @@
                [:p (str "Version: " (kitchen-version))
                 [:a.manifest-link {:href "manifest.edn"} "manifest.edn"]]
                [:h2 "Scittle build that can use kitchen plugins"]
-               [:div [:a {:href (str base-url "scittle.js")} (str base-url "scittle.js")]]
+               [:div
+                [:a {:href (str base-url "scittle.js")} (str base-url "scittle.js")]
+                " ("
+                [:a {:href (str base-url "dev/scittle.js")} "dev build"]
+                ")"]
                [:h2 (str "Community Plugins (" community-count ")")]
-               [:p {:class "section-desc"} "More plugins, compiled and ready for you to use."]
+               [:p {:class "section-desc"} "More plugins, compiled and ready for you to use. For each plugin, a dev build is also available with better debugging support."]
                (for [url community-urls]
-                 [:div [:a {:href url} url]])
+                 (let [dev-url (str (str/replace url "/js/" "/js/dev/"))]
+                   [:div
+                    [:a {:href url} url]
+                    " ("
+                    [:a {:href dev-url} "dev build"]
+                    ")"]))
                [:h2 (str "Official Plugins (" official-count ")")]
-               [:p {:class "section-desc"} "In the Scittle repository, but not published as part of Scittle."]
+               [:p {:class "section-desc"} "In the Scittle repository, but not published as part of Scittle. Dev builds are also available."]
                (for [url official-urls]
-                 [:div [:a {:href url} url]])
+                 (let [dev-url (str (str/replace url "/js/" "/js/dev/"))]
+                   [:div
+                    [:a {:href url} url]
+                    " ("
+                    [:a {:href dev-url} "dev build"]
+                    ")"]))
                [:h2 (str "Standard Plugins (" std-count ")")]
-               [:p {:class "section-desc"} "Always included with Scittle."]
+               [:p {:class "section-desc"} "Always included with Scittle. Dev builds are also available."]
                (for [url std-urls]
-                 [:div [:a {:href url} url]])
+                 (let [dev-url (str (str/replace url "/js/" "/js/dev/"))]
+                   [:div
+                    [:a {:href url} url]
+                    " ("
+                    [:a {:href dev-url} "dev build"]
+                    ")"]))
+               ;; Dev-only plugins section
+               [:h2 "Development-only Plugins"]
+               [:p {:class "section-desc"} "These plugins are only available in dev builds for debugging and development purposes."]
+               (let [dev-only ["scittle.cljs-devtools.js"]
+                     dev-only-urls (for [nm dev-only]
+                                     (str base-url "dev/" nm))]
+                 (for [url dev-only-urls]
+                   [:div [:a {:href url} url]]))
                [:footer {:style "margin-top:3em; text-align:center; color:#888; font-size:0.95em;"}
                 [:div [:a {:href "https://github.com/timothypratley/scittle-kitchen" :target "_blank"} "GitHub Repository"] " | "
                  [:span "License: EPL-1.0"] " | "
@@ -247,11 +267,11 @@
     (spit (str index-file)
           (str "<!DOCTYPE html>" \newline
                (hiccup/html page)))
-    (fs/copy "styles.css" (fs/path public-dir "styles.css") {:replace-existing true})
-    (fs/copy "favicon.ico" (fs/path public-dir "favicon.ico") {:replace-existing true})
-    (println "scittle-kitchen build created" (str index-file))))
+    (fs/copy "styles.css" (fs/file public-dir "styles.css") {:replace-existing true})
+    (fs/copy "favicon.ico" (fs/file public-dir "favicon.ico") {:replace-existing true})
+    (println "scittle-kitchen build Created" (str index-file))))
 
-;; Build
+;; ## Build
 
 (defn scittle-sci-version
   "Otherwise there will be a version conflict"
@@ -263,40 +283,53 @@
 
 (defn make
   "Generate a deps.edn in <build-name> with plugins, scittle, and sci on the classpath."
-  ([] (make (keys plugin-roots) "all"))
-  ([plugins build]
-   (println "scittle-kitchen build Preparing" build)
-   (fs/create-dirs build)
-   (let [scittle-deps {'io.github.babashka/scittle (local build "scittle")
-                       'io.github.babashka/scittle.build (local build (fs/path "scittle" "build"))
-                       'org.babashka/sci (scittle-sci-version)}
-         plugin-deps (map (fn [plugin]
-                            [(symbol "scittle-kitchen.plugins" (str "scittle." (name plugin)))
-                             (local build (get plugin-roots plugin))])
-                          plugins)
-         deps (into scittle-deps plugin-deps)]
-     (pretty-spit (fs/path build "bb.edn")
-                  {:deps deps
-                   :tasks '{:requires ([scittle.build :as build])
-                            release {:task (scittle.build/build {})}}})
-     (pretty-spit (fs/path build "deps.edn")
-                  {:deps scittle-deps})
-     (write-index-html build plugins)
-     (write-manifest build plugins)
-     (println "scittle-kitchen build Version" (kitchen-version) "ready to compile"))))
+  [plugins build plugin-roots]
+  (println "scittle-kitchen build Preparing" (str build))
+  (fs/create-dirs build)
+  (let [scittle-deps {'io.github.babashka/scittle (local build "scittle")
+                      'io.github.babashka/scittle.build (local build (fs/file "scittle" "build"))
+                      'org.babashka/sci (scittle-sci-version)}
+        plugin-deps (map (fn [plugin]
+                           [(symbol "scittle-kitchen.plugins" (str "scittle." (name plugin)))
+                            (local build (get plugin-roots plugin))])
+                         plugins)
+        deps (into scittle-deps plugin-deps)]
+    (pretty-spit (fs/file build "bb.edn")
+                 {:deps deps
+                  :tasks '{:requires ([scittle.build :as build])
+                           release {:task (scittle.build/build {})}}})
+    (pretty-spit (fs/file build "deps.edn")
+                 {:deps scittle-deps})
+    (write-index-html build plugins)
+    (write-manifest build plugins plugin-roots)
+    (println "scittle-kitchen build Version" (kitchen-version) "ready to compile")))
 
 ;; Command line arguments
 
-(let [std (set (standard-plugins))
-      args (remove std *command-line-args*)]
-  (if (seq args)
-    (let [plugins (mapv keyword args)
-          unknown (remove plugin-roots plugins)
-          build (first args)]
-      (if (seq unknown)
-        (do
-          (println "Unknown plugin:" (str/join ", " unknown))
+(defn -main [& args]
+  (println "scittle-kitchen build Started")
+  (ensure-latest-scittle)
+  (expand-plugin-tempalates)
+  (let [std (set (standard-plugins))
+        args (remove std args)
+        plugin-roots (find-plugin-roots)
+        plugins (if (seq args)
+                  (mapv keyword args)
+                  (keys plugin-roots))
+        unknown (remove plugin-roots plugins)
+        build (or (first args) "all")
+        build-dir (fs/path "target" build)]
+    (if (seq unknown)
+      (do (println "Unknown plugin:" (str/join ", " unknown))
           (println "Available plugins:" (str/join ", " (map name (keys plugin-roots))))
           (System/exit 1))
-        (make plugins build)))
-    (make)))
+      (do (fs/delete-tree build)
+          ;; Scittle generates shadow-cljs.edn, remove it if left over from failed build
+          (fs/delete-if-exists (fs/file build-dir "shadow-cljs.edn"))
+          (make plugins build-dir plugin-roots)
+          (println "scittle-kitchen build Compiling ClojureScript")
+          (shell {:dir build-dir} "bb" "release")
+          (println "scittle-kitchen build Copied js to" build)
+          (fs/copy-tree (fs/file build-dir "resources" "public" "js")
+                        (fs/file build))
+          (println "scittle-kitchen build Done")))))
