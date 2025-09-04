@@ -36,10 +36,13 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: NPM login
+        run: npm login
+
       - name: Build and release plugins
         run: bb release
 
-      - name: Publish
+      - name: NPM Publish
         run: npm publish
 
       - name: Publish to gh-pages
