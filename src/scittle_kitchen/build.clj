@@ -248,7 +248,6 @@
                                          (str "(def all-plugins\n  " new-all-plugins ")"))
                             (str/replace #"(?s)\(def plugin-dependencies\s+\{[^}]+\}\)"
                                          (str "(def plugin-dependencies\n  " new-plugin-deps ")")))]
-    (fs/create-dirs target-dir)
     (spit source-file updated-content)
     (spit target-file updated-content)
     (fs/copy (fs/file source-dir "favicon.ico")
@@ -285,10 +284,11 @@
                            release {:task (scittle.build/build {})}}})
     (pretty-spit (fs/file build-dir "deps.edn")
                  {:deps scittle-deps})
-    (let [target-dir (fs/file build-dir "resources" "public")
+    (let [public-dir (fs/file build-dir "resources" "public")
           manifest-data (manifest plugins plugin-roots)]
-      (pretty-spit (fs/file target-dir "manifest.edn") manifest-data)
-      (update-and-copy-index-html target-dir manifest-data)
+      (fs/create-dirs public-dir)
+      (pretty-spit (fs/file public-dir "manifest.edn") manifest-data)
+      (update-and-copy-index-html public-dir manifest-data)
       (println "scittle-kitchen build Version" (:version manifest-data) "ready to compile"))))
 
 ;; Command line arguments
