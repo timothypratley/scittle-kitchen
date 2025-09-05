@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scittle Kitchen - Plugins for Scittle</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <style>
+    body {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+    .plugin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.5rem;
+    }
+    pre {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      border-radius: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
+      <img src="favicon.ico" width="40" height="40" class="me-2">
+      <span class="fs-4">Scittle Kitchen</span>
+      <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+        <a class="py-2 text-dark text-decoration-none" href="https://github.com/timothypratley/scittle-kitchen">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="p-3 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-2">
+          <h1 class="h3 fw-bold">Preprepped ClojureScript Plugins</h1>
+          <div class="mt-2">
+            <a href="https://www.jsdelivr.com/package/npm/scittle-kitchen">
+              <img src="https://img.shields.io/npm/v/scittle-kitchen.svg" alt="npm version">
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div id="app">
+        <!-- Interactive UI will be rendered here -->
+        <p class="text-center">Loading interactive snippet generator...</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Scittle and UI script -->
+  <script src="https://cdn.jsdelivr.net/npm/scittle-kitchen/all/scittle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/scittle-kitchen/all/scittle.replicant.js"></script>
+  <script type="application/x-scittle">
+
+(ns ui
+  (:require [replicant.dom :as r]
+            [clojure.string :as str]))
+
+(def base-url "https://cdn.jsdelivr.net/npm/scittle-kitchen/dist/")
+
+(def all-plugins
+  ["asami" "clara-rules" "cljs-ajax" "cljs-bean" "cljs-devtools" "datascript" "dataspex" "emmy" "eql" "geom" "hoplon" "instaparse" "javelin" "js-interop" "kixi-stats" "loom" "mathbox" "nrepl" "pprint" "promesa" "re-frame" "reagent" "replicant" "tmdjs"])
+
+(def dev-only-plugins #{"cljs-devtools"})
+
+;; Plugin dependency map - key depends on values
+(def plugin-dependencies
+  {"dataspex" #{"datascript"}
+   "mathbox" #{"reagent"}
+   "re-frame" #{"reagent"}
+   "reagent" #{"react"}})
+
+(def state
+  (atom {:dev? false
+         :hiccup? false
+         :selected #{}}))
+
+(defn resolve-dependencies [selected-plugins]
+  (let [all-deps (loop [to-process (vec selected-plugins)
+                        resolved #{}]
+                   (if (empty? to-process)
+                     resolved
+                     (let [plugin (first to-process)
+                           deps (get plugin-dependencies plugin #{})
+                           new-deps (remove resolved deps)]
+                       (recur (into (subvec to-process 1) new-deps)
+                              (conj resolved plugin)))))
+        ;; topological sort dependencies before dependents
+        sorted (loop [remaining (vec all-deps)
+                      result []]
+                 (if (empty? remaining)
+                   result
+                   (let [available (filter (fn [item]
+                                             (let [item-deps (get plugin-dependencies item #{})]
+                                               (every? (fn [dep] (some #(= dep %) result)) item-deps)))
+                                           remaining)]
+                     (if (empty? available)
+                       ;; No items without dependencies - add first remaining to break cycle
+                       (recur (subvec remaining 1) (conj result (first remaining)))
+                       ;; Add first available item
+                       (let [next-item (first available)]
+                         (recur (remove #(= % next-item) remaining) (conj result next-item)))))))]
+    sorted))
+
+(defn plugin-checkbox [plugin-name]
+  (let [id (str "plugin-" plugin-name)]
+    [:div.form-check
+     [:input.form-check-input
+      {:type "checkbox"
+       :id id
+       :checked (contains? (:selected @state) plugin-name)
+       :on {:change [[:toggle-plugin plugin-name]]}}]
+     [:label.form-check-label {:for id} plugin-name]]))
+
+(defn generate-snippet []
+  (let [{:keys [dev? hiccup? selected]} @state
+        dir (when dev? "dev/")
+        scittle-src (str base-url dir "scittle.js")
+        scittle-tag (if hiccup?
+                      (pr-str [:script {:src scittle-src}])
+                      (str "<script src=\"" scittle-src "\"></sc" "ript>"))
+        selected-with-deps (cond-> (resolve-dependencies selected)
+                             (and dev? (not (contains? selected "cljs-devtools"))) (conj "cljs-devtools"))
+        plugin-tags (->> selected-with-deps
+                         (map (fn [p]
+                                (let [plugin-file (str "scittle." p ".js")
+                                      plugin-src (if (= p "react")
+                                                    "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"
+                                                    (str base-url dir plugin-file))]
+                                  (if hiccup?
+                                    (pr-str [:script (cond-> {:src plugin-src}
+                                                       (= p "react") (assoc :crossorigin ""))])
+                                    (let [crossorigin-attr (if (= p "react") " crossorigin" "")]
+                                      (str "<script" (when (= p "react") " crossorigin")
+                                           " src=\"" plugin-src "\"></sc" "ript>")))))))]
+   (str/join "\n" (cons scittle-tag plugin-tags))))
+
+(defn app []
+  [:div
+   [:p "Select your plugins and copy the snippet into your project."]
+
+   [:div.row
+    [:div.col-md-8
+     [:div.plugin-grid
+      (for [plugin (sort all-plugins)]
+        ^{:key plugin} (plugin-checkbox plugin))]]
+    [:div.col-md-4
+     [:h5 "Options"]
+     [:div.form-check.form-switch
+      [:input.form-check-input {:type "checkbox" :role "switch" :id "dev-mode"
+                                :checked (:dev? @state)
+                                :on {:change [[:toggle-dev]]}}]
+      [:label.form-check-label {:for "dev-mode"} "Development Mode"]]
+     [:p.form-text "Use dev builds for better debugging." [:br] "Includes `cljs-devtools`." ]
+
+     [:div.form-check.form-switch
+      [:input.form-check-input {:type "checkbox" :role "switch" :id "hiccup-mode"
+                                :checked (:hiccup? @state)
+                                :on {:change [[:toggle-hiccup]]}}]
+      [:label.form-check-label {:for "hiccup-mode"} "Hiccup Mode"]]
+     [:p.form-text "Generate a hiccup vector instead of HTML tags."]]]
+
+   [:div.mt-4
+    [:h5 "Your Custom Snippet"]
+    [:pre [:code.html (generate-snippet)]]
+    [:button.btn.btn-sm.btn-outline-secondary
+     {:on {:click [[:copy-snippet]]}}
+     "Copy to Clipboard"]]])
+
+(defn handle-event! [ev actions]
+  (doseq [[event-name payload] actions]
+    (case event-name
+      :toggle-plugin (swap! state update :selected (if (contains? (:selected @state) payload) disj conj) payload)
+      :toggle-dev (swap! state update :dev? not)
+      :toggle-hiccup (swap! state update :hiccup? not)
+      :copy-snippet (js/navigator.clipboard.writeText (generate-snippet)))))
+
+(defn start! []
+  (r/set-dispatch! handle-event!)
+  (let [root (js/document.getElementById "app")
+        render! #(r/render root (app))]
+    (letfn []
+      (remove-watch state :ui-rerender)
+      (add-watch state :ui-rerender (fn [_ _ _ _] (render!)))
+      (render!))))
+
+(start!)
+
+  </script>
+</body>
+</html>

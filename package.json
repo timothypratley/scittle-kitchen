@@ -2,8 +2,10 @@
   "name": "scittle-kitchen",
   "version": "0.7.27-40",
   "files": [
-    "all"
+    "dist"
   ],
+  "main": "dist/scittle.js",
+  "jsdelivr": "dist/scittle.js",
   "description": "Compiled ClojureScript plugins for Scittle",
   "repository": {
     "type": "git",

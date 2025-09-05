@@ -15,11 +15,11 @@
                               "--no-git-tag-version"
                               "--allow-same-version"))}
 
-  tag {:doc "sets the git tag"
+  tag {:doc "Creates and pushes a git tag to trigger release"
        :task (let [v (build/kitchen-version)]
-               (shell "git" "tag"
-                      "-a" v
-                      "-m" (str "Release version " v)))}
+               (shell "git" "tag" "-a" v "-m" (str "Release version " v))
+               (shell "git" "push" "origin" v)
+               (println "Created and pushed tag:" v))}
 
   release {:doc "Makes a release ready for npm publish"
            :task (do (run 'set-version)
@@ -28,4 +28,4 @@
   serve {:doc "Serve static assets"
          :requires ([babashka.http-server :as server])
          :task (server/exec {:port 1337
-                             :dir "all/resources/public"})}}}
+                             :dir "resources/public"})}}}

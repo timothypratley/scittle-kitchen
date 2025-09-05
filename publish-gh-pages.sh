@@ -2,7 +2,7 @@
 set -e
 
 REPO_URL=$(git config --get remote.origin.url)
-PUBLISH_DIR="target/all/resources/public"
+PUBLISH_DIR="resources/public"
 
 if [ ! -d "$PUBLISH_DIR" ]; then
   echo "Directory $PUBLISH_DIR does not exist. Run the build first."
