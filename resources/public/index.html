@@ -74,7 +74,7 @@
   {"dataspex" #{"datascript"}
    "mathbox" #{"reagent"}
    "re-frame" #{"reagent"}
-   "reagent" #{"react"}})
+   "reagent" ["react" "react-dom"]})
 
 (def state
   (atom {:dev? false
@@ -118,6 +118,10 @@
        :on {:change [[:toggle-plugin plugin-name]]}}]
      [:label.form-check-label {:for id} plugin-name]]))
 
+(def external-urls
+  {"react" "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"
+   "react-dom" "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"})
+
 (defn generate-snippet []
   (let [{:keys [dev? hiccup? selected]} @state
         dir (when dev? "dev/")
@@ -130,15 +134,13 @@
         plugin-tags (->> selected-with-deps
                          (map (fn [p]
                                 (let [plugin-file (str "scittle." p ".js")
-                                      plugin-src (if (= p "react")
-                                                    "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"
-                                                    (str base-url dir plugin-file))]
+                                      external (get external-urls p)
+                                      plugin-src (or external (str base-url dir plugin-file))]
                                   (if hiccup?
                                     (pr-str [:script (cond-> {:src plugin-src}
-                                                       (= p "react") (assoc :crossorigin ""))])
-                                    (let [crossorigin-attr (if (= p "react") " crossorigin" "")]
-                                      (str "<script" (when (= p "react") " crossorigin")
-                                           " src=\"" plugin-src "\"></sc" "ript>")))))))]
+                                                       external (assoc :crossorigin ""))])
+                                    (str "<script" (when external " crossorigin")
+                                           " src=\"" plugin-src "\"></sc" "ript>"))))))]
    (str/join "\n" (cons scittle-tag plugin-tags))))
 
 (defn app []

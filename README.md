@@ -109,4 +109,8 @@ Idea by Arne Brasseur a.k.a [plexus](https://github.com/plexus).
 
 ## License
 
-Distributed under the EPL License. See LICENSE.
+Plugins bundle source packages which may be governed by a different license.
+Refer to the source package license to be sure it meets your license needs.
+For example the Emmy package is licensed under GPL.
+
+Scittle Kitchen (the build process) is distributed under the EPL License. See LICENSE.
