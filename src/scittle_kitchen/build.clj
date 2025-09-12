@@ -37,7 +37,7 @@
 
 (defn pretty-spit [f x]
   (spit f (with-out-str (binding [*print-namespace-maps* false]
-                          (clojure.pprint/pprint x))))
+                          (pprint/pprint x))))
   (println "scittle-kitchen build Created" (str f)))
 
 ;; ## Plugin expansion from template to file system
@@ -207,12 +207,10 @@
                                           plugin-path (get plugin-roots plugin)
                                           deps (when plugin-path
                                                  (extract-dependencies-from-plugin-edn plugin-path))]
-                                    :when (and deps (seq deps))]
-                                [plugin-name deps]))
-        all-deps (merge shadow-deps plugin-edn-deps)
-        final-deps (cond-> all-deps
-                     (contains? all-deps "reagent") (assoc "reagent" #{"react"}))]
-    final-deps))
+                                    :when deps]
+                                [plugin-name deps]))]
+    (merge shadow-deps plugin-edn-deps {"reagent" #{"react-dom"}
+                                        "react-dom" #{"react"}})))
 
 (defn manifest [plugins plugin-roots]
   {:version (kitchen-version)
@@ -234,21 +232,14 @@
         content (slurp source-file)
         {:keys [all-plugins plugin-dependencies]} manifest-data
         new-base-url "\"https://cdn.jsdelivr.net/npm/scittle-kitchen/dist/\""
-        new-all-plugins (str "[" (str/join " " (map #(str "\"" % "\"") (sort all-plugins))) "]")
-        new-plugin-deps (str "{"
-                             (str/join "\n   "
-                                       (for [[k deps] plugin-dependencies]
-                                         (str "\"" k "\" #{" (str/join " " (map #(str "\"" % "\"") deps)) "}")))
-                             "}")
-
-        ;; Replace sections using markers
+        ;; Replace sections
         updated-content (-> content
                             (str/replace #"(?s)\(def base-url \"[^\"]+\"\)"
                                          (str "(def base-url " new-base-url ")"))
                             (str/replace #"(?s)\(def all-plugins\s+\[[^\]]+\]\)"
-                                         (str "(def all-plugins\n  " new-all-plugins ")"))
-                            (str/replace #"(?s)\(def plugin-dependencies\s+\{[^}]+\}\)"
-                                         (str "(def plugin-dependencies\n  " new-plugin-deps ")")))]
+                                         (str "(def all-plugins\n  " (pr-str (vec (sort all-plugins))) ")"))
+                            (str/replace #"\(def plugin-dependencies[\s\S]*?\}\)"
+                                         (str "(def plugin-dependencies\n  " (pr-str plugin-dependencies) ")")))]
     (spit source-file updated-content)
     (spit target-file updated-content)
     (fs/copy (fs/file source-dir "favicon.ico")

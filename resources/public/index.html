@@ -71,10 +71,7 @@
 
 ;; Plugin dependency map - key depends on values
 (def plugin-dependencies
-  {"dataspex" #{"datascript"}
-   "mathbox" #{"reagent"}
-   "re-frame" #{"reagent"}
-   "reagent" ["react" "react-dom"]})
+  {"pprint" #{}, "nrepl" #{}, "re-frame" #{"reagent"}, "cljs-ajax" #{}, "clara-rules" #{}, "js-interop" #{}, "emmy" #{}, "loom" #{}, "react-dom" #{"react"}, "reagent" #{"react-dom"}, "mathbox" #{"reagent"}, "geom" #{}, "tmdjs" #{}, "emmy-viewers" #{"emmy" "reagent" "mathbox"}, "eql" #{}, "dataspex" #{"datascript"}, "kixi-stats" #{}, "instaparse" #{}, "hoplon" #{"javelin"}, "asami" #{}, "cljs-bean" #{}, "datascript" #{}, "javelin" #{}, "promesa" #{}, "replicant" #{}})
 
 (def state
   (atom {:dev? false
