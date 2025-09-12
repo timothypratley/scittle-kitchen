@@ -7,7 +7,7 @@ Plugins are compiled ClojureScript libraries you can include as scripts.
 
 Community Plugins:
 asami, clara-rules, cljs-bean,
-emmy, eql, geom,
+emmy, emmy-viewers, eql, geom,
 instaparse,  kixi-stats, loom,
 mathbox, tmdjs
 

@@ -88,6 +88,10 @@ Below details how `scittle-kitchen` achieves this situation by preparing the dep
   The interactive landing page uses this dependency graph to automatically include required plugins in the correct loading order,
   and handles external CDN resources (like React) appropriately. This uses topological sorting to ensure dependencies load before dependents.
 
+- **Pin React**
+  Problem: plugins have varying and conflicting dependencies on React.
+  Solution: Scittle Kitchen pins React to 18.3.1 by generating a package.json when preparing the build.
+
 - **Versioning Scheme:**
   Each `scittle-kitchen` build is assigned a version of the form: MAJOR.MINOR.PATCH-BUILD
   - `MAJOR.MINOR.PATCH` is taken from the latest Scittle tag (e.g., 0.7.27)

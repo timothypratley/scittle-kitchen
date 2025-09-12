@@ -1,11 +1,12 @@
 (ns scittle-kitchen.build
   "A way to build more plugins for scittle"
-  (:require [babashka.fs :as fs]
+  (:require [babashka.deps :as deps]
+            [babashka.fs :as fs]
+            [babashka.process :refer [shell]]
+            [cheshire.core :as json]
             [clojure.edn :as edn]
             [clojure.pprint :as pprint]
-            [clojure.string :as str]
-            [babashka.deps :as deps]
-            [babashka.process :refer [shell]]))
+            [clojure.string :as str]))
 
 (deps/add-deps '{:deps {camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}}})
 (require '[camel-snake-kebab.core :as csk])
@@ -284,6 +285,10 @@
                            release {:task (scittle.build/build {})}}})
     (pretty-spit (fs/file build-dir "deps.edn")
                  {:deps scittle-deps})
+    ;; Avoid React version conflicts
+    (spit (fs/file build-dir "package.json")
+          (json/generate-string {:dependencies {:react "18.3.1"
+                                                :react-dom "18.3.1"}}))
     (let [public-dir (fs/file build-dir "resources" "public")
           manifest-data (manifest plugins plugin-roots)]
       (fs/create-dirs public-dir)
