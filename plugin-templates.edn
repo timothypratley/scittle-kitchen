@@ -27,9 +27,9 @@
             :depends-on #{:datascript}}
  :emmy {:namespaces [emmy.env]
         :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
- :emmy-viewers {:namespaces [emmy.mafs emmy.viewer emmy.mathbox]
+ :emmy-viewers {:namespaces [emmy.mafs emmy.viewer emmy.mathbox emmy.mathbox.plot emmy.mathbox.color emmy.leva]
                 :deps {org.mentat/emmy-viewers {:mvn/version "0.3.2"}}
-                :depends-on #{:emmy :mathbox}}
+                :depends-on #{:emmy :mathbox :reagent}}
  :eql {:namespaces [edn-query-language.core]
        :deps {edn-query-language/eql {:mvn/version "2021.07.18"}}}
  :geom {:namespaces [thi.ng.geom.viz.core
