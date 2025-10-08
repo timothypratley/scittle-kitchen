@@ -74,8 +74,8 @@
   {"pprint" #{}, "nrepl" #{}, "re-frame" #{"reagent"}, "cljs-ajax" #{}, "clara-rules" #{}, "js-interop" #{}, "emmy" #{}, "loom" #{}, "react-dom" #{"react"}, "reagent" #{"react-dom"}, "mathbox" #{"reagent"}, "geom" #{}, "tmdjs" #{}, "emmy-viewers" #{"emmy" "reagent" "mathbox"}, "eql" #{}, "dataspex" #{"datascript"}, "kixi-stats" #{}, "instaparse" #{}, "hoplon" #{"javelin"}, "asami" #{}, "cljs-bean" #{}, "datascript" #{}, "javelin" #{}, "promesa" #{}, "replicant" #{}})
 
 (def state
-  (atom {:dev? false
-         :hiccup? false
+  (atom {:dev false
+         :hiccup false
          :selected #{}}))
 
 (defn resolve-dependencies [selected-plugins]
@@ -120,20 +120,20 @@
    "react-dom" "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"})
 
 (defn generate-snippet []
-  (let [{:keys [dev? hiccup? selected]} @state
-        dir (when dev? "dev/")
+  (let [{:keys [dev hiccup selected]} @state
+        dir (when dev "dev/")
         scittle-src (str base-url dir "scittle.js")
-        scittle-tag (if hiccup?
+        scittle-tag (if hiccup
                       (pr-str [:script {:src scittle-src}])
                       (str "<script src=\"" scittle-src "\"></sc" "ript>"))
         selected-with-deps (cond-> (resolve-dependencies selected)
-                             (and dev? (not (contains? selected "cljs-devtools"))) (conj "cljs-devtools"))
+                             (and dev (not (contains? selected "cljs-devtools"))) (conj "cljs-devtools"))
         plugin-tags (->> selected-with-deps
                          (map (fn [p]
                                 (let [plugin-file (str "scittle." p ".js")
                                       external (get external-urls p)
                                       plugin-src (or external (str base-url dir plugin-file))]
-                                  (if hiccup?
+                                  (if hiccup
                                     (pr-str [:script (cond-> {:src plugin-src}
                                                        external (assoc :crossorigin ""))])
                                     (str "<script" (when external " crossorigin")
@@ -153,14 +153,14 @@
      [:h5 "Options"]
      [:div.form-check.form-switch
       [:input.form-check-input {:type "checkbox" :role "switch" :id "dev-mode"
-                                :checked (:dev? @state)
+                                :checked (:dev @state)
                                 :on {:change [[:toggle-dev]]}}]
       [:label.form-check-label {:for "dev-mode"} "Development Mode"]]
      [:p.form-text "Use dev builds for better debugging." [:br] "Includes `cljs-devtools`." ]
 
      [:div.form-check.form-switch
       [:input.form-check-input {:type "checkbox" :role "switch" :id "hiccup-mode"
-                                :checked (:hiccup? @state)
+                                :checked (:hiccup @state)
                                 :on {:change [[:toggle-hiccup]]}}]
       [:label.form-check-label {:for "hiccup-mode"} "Hiccup Mode"]]
      [:p.form-text "Generate a hiccup vector instead of HTML tags."]]]
@@ -173,11 +173,14 @@
      "Copy to Clipboard"]]])
 
 (defn handle-event! [ev actions]
-  (doseq [[event-name payload] actions]
+  (doseq [[event-name plugin] actions]
     (case event-name
-      :toggle-plugin (swap! state update :selected (if (contains? (:selected @state) payload) disj conj) payload)
-      :toggle-dev (swap! state update :dev? not)
-      :toggle-hiccup (swap! state update :hiccup? not)
+      :toggle-plugin (let [contains (contains? (:selected @state) plugin)
+                           devtools (= plugin "cljs-devtools")]
+                       (when devtools (swap! state assoc :dev (not contains)))
+                       (swap! state update :selected (if contains disj conj) plugin))
+      :toggle-dev (swap! state update :dev not)
+      :toggle-hiccup (swap! state update :hiccup not)
       :copy-snippet (js/navigator.clipboard.writeText (generate-snippet)))))
 
 (defn start! []
