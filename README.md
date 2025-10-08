@@ -16,7 +16,7 @@ datascript, dataspex,  hoplon, javelin,
 
 Standard Plugins:
 cljs-ajax, cljs-devtools, js-interop, nrepl,
-pprint, promesa, re-fram, reagent, replicant
+pprint, promesa, re-frame, reagent, replicant
 
 ## Usage
 
