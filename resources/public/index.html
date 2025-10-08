@@ -49,6 +49,10 @@
         <!-- Interactive UI will be rendered here -->
         <p class="text-center">Loading interactive snippet generator...</p>
       </div>
+      <hr>
+      <p>
+        See <a href="https://cdn.jsdelivr.net/npm/scittle-kitchen/dist/manifest.edn">manifest.edn</a> for plugin versions.
+      </p>
 
     </main>
   </div>
@@ -62,12 +66,12 @@
   (:require [replicant.dom :as r]
             [clojure.string :as str]))
 
-(def base-url "https://cdn.jsdelivr.net/npm/scittle-kitchen/dist/")
+(def base-url "https://cdn.jsdelivr.net/npm/scittle-kitchen")
+
+(def kitchen-version "v0.7.28-50")
 
 (def all-plugins
   ["asami" "clara-rules" "cljs-ajax" "cljs-bean" "cljs-devtools" "datascript" "dataspex" "emmy" "emmy-viewers" "eql" "geom" "hoplon" "instaparse" "javelin" "js-interop" "kixi-stats" "loom" "mathbox" "nrepl" "pprint" "promesa" "re-frame" "reagent" "replicant" "tmdjs"])
-
-(def dev-only-plugins #{"cljs-devtools"})
 
 ;; Plugin dependency map - key depends on values
 (def plugin-dependencies
@@ -76,6 +80,7 @@
 (def state
   (atom {:dev false
          :hiccup false
+         :pinned false
          :selected #{}}))
 
 (defn resolve-dependencies [selected-plugins]
@@ -120,19 +125,17 @@
    "react-dom" "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"})
 
 (defn generate-snippet []
-  (let [{:keys [dev hiccup selected]} @state
-        dir (when dev "dev/")
-        scittle-src (str base-url dir "scittle.js")
+  (let [{:keys [dev hiccup pinned selected]} @state
+        url (str base-url (when pinned kitchen-version) "/dist/" (when dev "dev/"))
+        scittle-src (str url "scittle.js")
         scittle-tag (if hiccup
                       (pr-str [:script {:src scittle-src}])
                       (str "<script src=\"" scittle-src "\"></sc" "ript>"))
-        selected-with-deps (cond-> (resolve-dependencies selected)
-                             (and dev (not (contains? selected "cljs-devtools"))) (conj "cljs-devtools"))
-        plugin-tags (->> selected-with-deps
+        plugin-tags (->> (resolve-dependencies selected)
                          (map (fn [p]
                                 (let [plugin-file (str "scittle." p ".js")
                                       external (get external-urls p)
-                                      plugin-src (or external (str base-url dir plugin-file))]
+                                      plugin-src (or external (str url plugin-file))]
                                   (if hiccup
                                     (pr-str [:script (cond-> {:src plugin-src}
                                                        external (assoc :crossorigin ""))])
@@ -163,7 +166,15 @@
                                 :checked (:hiccup @state)
                                 :on {:change [[:toggle-hiccup]]}}]
       [:label.form-check-label {:for "hiccup-mode"} "Hiccup Mode"]]
-     [:p.form-text "Generate a hiccup vector instead of HTML tags."]]]
+     [:p.form-text "Generate a hiccup vector instead of HTML tags."]
+
+     [:div.form-check.form-switch
+      [:input.form-check-input {:type "checkbox" :role "switch" :id "pin-mode"
+                                :checked (:pinned @state)
+                                :on {:change [[:toggle-pinned]]}}]]
+     [:p.form-text "Pin to version"]
+
+     ]]
 
    [:div.mt-4
     [:h5 "Your Custom Snippet"]
@@ -175,12 +186,13 @@
 (defn handle-event! [ev actions]
   (doseq [[event-name plugin] actions]
     (case event-name
-      :toggle-plugin (let [contains (contains? (:selected @state) plugin)
-                           devtools (= plugin "cljs-devtools")]
-                       (when devtools (swap! state assoc :dev (not contains)))
+      :toggle-plugin (let [contains (contains? (:selected @state) plugin)]
+                       (when (= plugin "cljs-devtools")
+                         (swap! state assoc :dev (not contains)))
                        (swap! state update :selected (if contains disj conj) plugin))
       :toggle-dev (swap! state update :dev not)
       :toggle-hiccup (swap! state update :hiccup not)
+      :toggle-pinned (swap! state update :pinned not)
       :copy-snippet (js/navigator.clipboard.writeText (generate-snippet)))))
 
 (defn start! []

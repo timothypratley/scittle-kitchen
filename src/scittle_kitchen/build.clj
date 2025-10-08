@@ -230,12 +230,11 @@
         source-file (fs/file source-dir "index.html")
         target-file (fs/file target-dir "index.html")
         content (slurp source-file)
-        {:keys [all-plugins plugin-dependencies]} manifest-data
-        new-base-url "\"https://cdn.jsdelivr.net/npm/scittle-kitchen/dist/\""
+        {:keys [all-plugins plugin-dependencies version]} manifest-data
         ;; Replace sections
         updated-content (-> content
-                            (str/replace #"(?s)\(def base-url \"[^\"]+\"\)"
-                                         (str "(def base-url " new-base-url ")"))
+                            (str/replace #"(?s)\(def kitchen-version \"[^\"]+\"\)"
+                                         (str "(def kitchen-version " (pr-str version) ")"))
                             (str/replace #"(?s)\(def all-plugins\s+\[[^\]]+\]\)"
                                          (str "(def all-plugins\n  " (pr-str (vec (sort all-plugins))) ")"))
                             (str/replace #"\(def plugin-dependencies[\s\S]*?\}\)"
@@ -283,7 +282,7 @@
     (let [public-dir (fs/file build-dir "resources" "public")
           manifest-data (manifest plugins plugin-roots)]
       (fs/create-dirs public-dir)
-      (pretty-spit (fs/file public-dir "manifest.edn") manifest-data)
+      (pretty-spit (fs/file build-dir "manifest.edn") manifest-data)
       (update-and-copy-index-html public-dir manifest-data)
       (println "scittle-kitchen build Version" (:version manifest-data) "ready to compile"))))
 
