@@ -126,7 +126,10 @@
 
 (defn generate-snippet []
   (let [{:keys [dev hiccup pinned selected]} @state
-        url (str base-url (when pinned kitchen-version) "/dist/" (when dev "dev/"))
+        url (str base-url
+                 (when pinned (str "@" (subs kitchen-version 1)))
+                 "/dist/"
+                 (when dev "dev/"))
         scittle-src (str url "scittle.js")
         scittle-tag (if hiccup
                       (pr-str [:script {:src scittle-src}])
