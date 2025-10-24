@@ -55,6 +55,9 @@
                         mathbox.primitives]
            :deps {org.mentat/mathbox.cljs {:mvn/version "0.2.2"}}
            :depends-on #{:reagent}}
+ :re-frame-undo {:namespaces [day8.re-frame.undo]
+                 :deps {day8.re-frame/undo {:mvn/version "0.3.3"}}
+                 :depends-on #{:re-frame}}
  #_#_:quil {:namespaces [quil.core]
             :deps {quil/quil {:mvn/version "4.3.1563"}}}
  :tmdjs {:namespaces [tech.v3.dataset]
