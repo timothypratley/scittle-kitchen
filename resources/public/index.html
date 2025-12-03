@@ -68,14 +68,14 @@
 
 (def base-url "https://cdn.jsdelivr.net/npm/scittle-kitchen")
 
-(def kitchen-version "v0.7.28-50")
+(def kitchen-version "v0.7.28-57")
 
 (def all-plugins
-  ["asami" "clara-rules" "cljs-ajax" "cljs-bean" "cljs-devtools" "datascript" "dataspex" "emmy" "emmy-viewers" "eql" "geom" "hoplon" "instaparse" "javelin" "js-interop" "kixi-stats" "loom" "mathbox" "nrepl" "pprint" "promesa" "re-frame" "reagent" "replicant" "tmdjs"])
+  ["asami" "clara-rules" "cljs-ajax" "cljs-bean" "cljs-devtools" "datascript" "dataspex" "emmy" "emmy-viewers" "eql" "geom" "hoplon" "instaparse" "javelin" "js-interop" "kixi-stats" "loom" "mathbox" "nrepl" "pprint" "promesa" "re-frame" "re-frame-undo" "reagent" "replicant" "tmdjs"])
 
 ;; Plugin dependency map - key depends on values
 (def plugin-dependencies
-  {"pprint" #{}, "nrepl" #{}, "re-frame" #{"reagent"}, "cljs-ajax" #{}, "clara-rules" #{}, "js-interop" #{}, "emmy" #{}, "loom" #{}, "react-dom" #{"react"}, "reagent" #{"react-dom"}, "mathbox" #{"reagent"}, "geom" #{}, "tmdjs" #{}, "emmy-viewers" #{"emmy" "reagent" "mathbox"}, "eql" #{}, "dataspex" #{"datascript"}, "kixi-stats" #{}, "instaparse" #{}, "hoplon" #{"javelin"}, "asami" #{}, "cljs-bean" #{}, "datascript" #{}, "javelin" #{}, "promesa" #{}, "replicant" #{}})
+  {"pprint" #{}, "nrepl" #{}, "re-frame" #{"reagent"}, "re-frame-undo" #{"re-frame"}, "cljs-ajax" #{}, "clara-rules" #{}, "js-interop" #{}, "emmy" #{}, "loom" #{}, "react-dom" #{"react"}, "reagent" #{"react-dom"}, "mathbox" #{"reagent"}, "geom" #{}, "tmdjs" #{}, "emmy-viewers" #{"emmy" "reagent" "mathbox"}, "eql" #{}, "dataspex" #{"datascript"}, "kixi-stats" #{}, "instaparse" #{}, "hoplon" #{"javelin"}, "asami" #{}, "cljs-bean" #{}, "datascript" #{}, "javelin" #{}, "promesa" #{}, "replicant" #{}})
 
 (def state
   (atom {:dev false
