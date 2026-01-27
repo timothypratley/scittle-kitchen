@@ -9,6 +9,9 @@
   build {:doc "Make the JavaScript"
          :task (apply build/-main *command-line-args*)}
 
+  v {:doc "Get the version"
+     :task (println (build/kitchen-version))}
+
   set-version {:doc "Set package.json"
                :task (let [v (build/kitchen-version)]
                        (shell "npm" "version" (subs v 1)
