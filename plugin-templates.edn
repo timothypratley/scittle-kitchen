@@ -63,7 +63,8 @@
                      emmy.expression.render
                      emmy.polynomial
                      emmy.structure
-                     emmy.tape emmy.util
+                     emmy.tape
+                     emmy.util
                      emmy.pattern.consequence
                      emmy.pattern.syntax
                      emmy.pattern.rule
@@ -100,6 +101,7 @@
                      emmy.numerical.multimin.nelder-mead
                      emmy.numerical.minimize
                      emmy.numerical.roots.bisect
+                     emmy.bigfraction
                      emmy.calculus.basis
                      emmy.calculus.frame
                      emmy.calculus.manifold
