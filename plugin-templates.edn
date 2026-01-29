@@ -25,7 +25,7 @@
             :deps {no.cjohansen/dataspex {:mvn/version "2025.06.8"}
                    no.cjohansen/phosphor-clj {:mvn/version "2025.04.16"}}
             :depends-on #{:datascript}}
- :emmy {:namespaces [emmy.env emmy.abstract.function emmy.mechanics.lagrange emmy.numerical.minimize emmy.calculus.coordinate]
+ :emmy {:namespaces [emmy.env emmy.util.def emmy.abstract.function emmy.mechanics.lagrange emmy.numerical.minimize emmy.calculus.coordinate]
         :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
  :emmy-viewers {:namespaces [emmy.mafs emmy.viewer emmy.mathbox emmy.mathbox.plot emmy.mathbox.color emmy.leva]
                 :deps {org.mentat/emmy-viewers {:mvn/version "0.3.2"}}
