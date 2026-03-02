@@ -190,7 +190,6 @@
                      thi.ng.geom.viz.core
                      thi.ng.geom.voxel.isosurface
                      thi.ng.geom.voxel.svo
-                     thi.ng.geom.viz.core
                      thi.ng.math.core
                      thi.ng.math.bits
                      thi.ng.math.gamma
