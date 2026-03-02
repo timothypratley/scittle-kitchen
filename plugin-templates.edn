@@ -143,9 +143,6 @@
                        thi.ng.geom.gl.fx
                        thi.ng.geom.gl.fx.bloom
                        thi.ng.geom.gl.glmesh
-                       thi.ng.geom.gl.jogl.buffers
-                       thi.ng.geom.gl.jogl.constants
-                       thi.ng.geom.gl.jogl.core
                        thi.ng.geom.gl.shaders
                        thi.ng.geom.gl.shaders.basic
                        thi.ng.geom.gl.shaders.image
