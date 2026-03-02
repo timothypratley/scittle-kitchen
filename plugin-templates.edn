@@ -157,9 +157,6 @@
                        thi.ng.geom.gmesh
                        thi.ng.geom.indexedmesh
                        thi.ng.geom.line
-                       thi.ng.geom.macros.matrix
-                       thi.ng.geom.macros.vector
-                       thi.ng.geom.macros.voxel
                        thi.ng.geom.matrix
                        thi.ng.geom.mesh
                        thi.ng.geom.mesh.csg
