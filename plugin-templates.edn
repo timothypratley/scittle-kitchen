@@ -129,11 +129,84 @@
                 :depends-on #{:emmy :mathbox :reagent}}
  :eql {:namespaces [edn-query-language.core]
        :deps {edn-query-language/eql {:mvn/version "2021.07.18"}}}
- :geom {:namespaces [thi.ng.geom.viz.core
-                     thi.ng.geom.svg.core
-                     thi.ng.geom.vector
-                     thi.ng.color.core
-                     thi.ng.math.core]
+ :thi-ng {:namespaces [thi.ng.geom.aabb
+                    thi.ng.geom.attribs
+                    thi.ng.geom.basicmesh
+                    thi.ng.geom.bench.core.vector
+                    thi.ng.geom.bezier
+                    thi.ng.geom.circle
+                    thi.ng.geom.core
+                    thi.ng.geom.cuboid
+                    thi.ng.geom.gl.arcball
+                    thi.ng.geom.gl.buffers
+                    thi.ng.geom.gl.camera
+                    thi.ng.geom.gl.core
+                    thi.ng.geom.gl.fx
+                    thi.ng.geom.gl.fx.bloom
+                    thi.ng.geom.gl.glmesh
+                    thi.ng.geom.gl.jogl.buffers
+                    thi.ng.geom.gl.jogl.constants
+                    thi.ng.geom.gl.jogl.core
+                    thi.ng.geom.gl.shaders
+                    thi.ng.geom.gl.shaders.basic
+                    thi.ng.geom.gl.shaders.image
+                    thi.ng.geom.gl.shaders.lambert
+                    thi.ng.geom.gl.shaders.phong
+                    thi.ng.geom.gl.shaders.shadow
+                    thi.ng.geom.gl.shaders.spotlight
+                    thi.ng.geom.gl.shaders.xray
+                    thi.ng.geom.gl.utils
+                    thi.ng.geom.gl.webgl.animator
+                    thi.ng.geom.gl.webgl.constants
+                    thi.ng.geom.gmesh
+                    thi.ng.geom.indexedmesh
+                    thi.ng.geom.line
+                    thi.ng.geom.macros.matrix
+                    thi.ng.geom.macros.vector
+                    thi.ng.geom.macros.voxel
+                    thi.ng.geom.matrix
+                    thi.ng.geom.mesh
+                    thi.ng.geom.mesh.csg
+                    thi.ng.geom.mesh.io
+                    thi.ng.geom.mesh.ops
+                    thi.ng.geom.mesh.subdivision
+                    thi.ng.geom.meshface
+                    thi.ng.geom.path
+                    thi.ng.geom.physics.core
+                    thi.ng.geom.plane
+                    thi.ng.geom.polygon
+                    thi.ng.geom.polyhedra
+                    thi.ng.geom.ptf
+                    thi.ng.geom.quad
+                    thi.ng.geom.quaternion
+                    thi.ng.geom.rect
+                    thi.ng.geom.spatialtree
+                    thi.ng.geom.sphere
+                    thi.ng.geom.svg.adapter
+                    thi.ng.geom.svg.core
+                    thi.ng.geom.svg.renderer
+                    thi.ng.geom.svg.shaders
+                    thi.ng.geom.tetrahedron
+                    thi.ng.geom.triangle
+                    thi.ng.geom.types
+                    thi.ng.geom.utils
+                    thi.ng.geom.utils.delaunay
+                    thi.ng.geom.utils.intersect
+                    thi.ng.geom.utils.subdiv
+                    thi.ng.geom.vector
+                    thi.ng.geom.version
+                    thi.ng.geom.viz.core
+                    thi.ng.geom.voxel.isosurface
+                    thi.ng.geom.voxel.svo
+                    thi.ng.geom.viz.core
+                    thi.ng.math.core
+                    thi.ng.math.bits
+                    thi.ng.math.gamma
+                    thi.ng.math.macros
+                    thi.ng.math.noise
+                    thi.ng.color.core
+                    thi.ng.color.gradients
+                    thi.ng.color.presets]
         :deps {thi.ng/geom {:mvn/version "1.0.1"}}}
  :instaparse {:namespaces [instaparse.core
                            instaparse.transform]
