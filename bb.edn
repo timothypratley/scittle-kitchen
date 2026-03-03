@@ -10,7 +10,20 @@
          :task (apply build/-main *command-line-args*)}
 
   v {:doc "Get the version"
-     :task (println (build/kitchen-version))}
+     :task (do (build/ensure-latest-scittle)
+               (println (build/kitchen-version)))}
+
+  check-newer {:doc "Check if there's a new version to release (exit 0 if newer, 1 if not)"
+               :task (let [v (build/kitchen-version)
+                           tag-exists? (-> (shell {:continue true :out :string}
+                                                 "git" "rev-parse" (str "v" v))
+                                           :exit
+                                           zero?)]
+                       (if tag-exists?
+                         (do (println "Version v" v "already exists")
+                             (System/exit 1))
+                         (do (println "New version v" v "detected")
+                             (System/exit 0))))}
 
   set-version {:doc "Set package.json"
                :task (let [v (build/kitchen-version)]

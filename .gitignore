@@ -1,0 +1,9 @@
+/dist/
+/target/
+/temp/
+/.cpcache/
+/.lsp/
+/.clj-kondo/
+/.nrepl-port
+/.repl-logs/
+/.calva/
