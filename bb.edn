@@ -4,6 +4,7 @@
  :tasks
  {:requires ([babashka.http-server :as http]
              [babashka.fs :as fs]
+             [clojure.string :as str]
              [scittle-kitchen.build :as build])
 
   build {:doc "Make the JavaScript"
@@ -14,16 +15,16 @@
                (println (build/kitchen-version)))}
 
   check-newer {:doc "Check if there's a new version to release (exit 0 if newer, 1 if not)"
-               :task (let [v (build/kitchen-version)
-                           tag-exists? (-> (shell {:continue true :out :string}
-                                                 "git" "rev-parse" (str "v" v))
-                                           :exit
-                                           zero?)]
-                       (if tag-exists?
-                         (do (println "Version v" v "already exists")
-                             (System/exit 1))
-                         (do (println "New version v" v "detected")
-                             (System/exit 0))))}
+               :task (let [current-scittle (build/git-tag "scittle")
+                           last-kitchen-tag (build/git-tag)
+                           last-kitchen-scittle (when last-kitchen-tag
+                                                 (first (str/split last-kitchen-tag (re-pattern "-"))))
+                           is-newer? (not= current-scittle last-kitchen-scittle)]
+                       (if is-newer?
+                         (do (println (str "New scittle version detected: " current-scittle))
+                             (System/exit 0))
+                         (do (println (str "Scittle version unchanged: " current-scittle))
+                             (System/exit 1))))}
 
   set-version {:doc "Set package.json"
                :task (let [v (build/kitchen-version)]

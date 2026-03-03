@@ -11,7 +11,7 @@ on:
       - main
     tags:
       - 'v*'
-                                                                                                                                                                                                                                                                                                                                                                          schedule:
+  schedule:
     - cron: '0 0 * * *'  # Daily at midnight UTC
   workflow_dispatch:  # Allow manual triggers
 
