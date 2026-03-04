@@ -318,7 +318,10 @@
             (do
               (println "scittle-kitchen build Compiling ClojureScript")
               (shell {:dir build-dir} "bb" "release")
-              (println "scittle-kitchen build Copied js to" build)
+              (println "scittle-kitchen build Copying js to" (str dest))
               (fs/copy-tree (fs/file build-dir "resources" "public" "js")
-                            dest)))
+                            dest)
+              (doseq [map-file (fs/glob dest "*.map")]
+                (fs/delete map-file))
+              (println "scittle-kitchen build Removed .map files from dist root (kept in dev)")))
           (println "scittle-kitchen build Done")))))
