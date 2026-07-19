@@ -1,5 +1,6 @@
 
 name: CI
+
 permissions:
   id-token: write  # Required for OIDC
   contents: write
@@ -15,6 +16,9 @@ on:
     - cron: '0 0 * * *'  # Daily at midnight UTC
   workflow_dispatch:  # Allow manual triggers
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   check-and-tag:
     runs-on: ubuntu-latest
@@ -29,7 +33,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Clojure and Babashka
-        uses: DeLaGuardo/setup-clojure@11.0
+        uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
           bb: latest
@@ -72,7 +76,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Clojure and Babashka
-        uses: DeLaGuardo/setup-clojure@11.0
+        uses: DeLaGuardo/setup-clojure@13.4
         with:
           cli: latest
           bb: latest
