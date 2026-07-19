@@ -38,8 +38,7 @@ jobs:
       - name: Check for scittle updates and create tag
         id: check-update
         run: |
-          echo "version=$(bb v)" >> $GITHUB_OUTPUT
-
+          echo "version=$(bb v | tail -n 1)" >> $GITHUB_OUTPUT
           if bb check-newer; then
             echo "should-build=true" >> $GITHUB_OUTPUT
             git config user.name "github-actions[bot]"
