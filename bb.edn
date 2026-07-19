@@ -27,6 +27,13 @@
                              (do (println (str "Scittle version unchanged: " current-scittle))
                                  (System/exit 1)))))}
 
+  check-released {:doc "Check if this version has been released to NPM (exit 0 if released, 1 if not)"
+                  :task (if (build/released?)
+                          (do (println (str "Already released"))
+                              (System/exit 0))
+                          (do (println (str "Not yet released"))
+                              (System/exit 1)))}
+
   set-version {:doc "Set package.json"
                :task (let [v (build/kitchen-version)]
                        (shell "npm" "version" (subs v 1)

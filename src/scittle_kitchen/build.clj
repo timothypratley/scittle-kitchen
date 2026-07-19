@@ -162,6 +162,16 @@
         commit-count (-> (shell {:out :string} "git" "rev-list" "--count" "HEAD") :out str/trim)]
     (str major "." minor "." patch "-" commit-count)))
 
+;; ## NPM versioning
+
+(defn released? []
+  (let [latest (-> (shell {:out :string} "npm view scittle-kitchen version") :out str/trim)
+        kitchen (kitchen-version)]
+    (println "NPM latest" latest "vs kitchen" kitchen)
+    (= latest kitchen)))
+
+;; ## Plugins
+
 (defn extract-dependencies-from-shadow-cljs []
   (let [shadow-config (slurp-edn (fs/file "scittle" "shadow-cljs.edn"))
         modules (get-in shadow-config [:builds :main :modules])]
