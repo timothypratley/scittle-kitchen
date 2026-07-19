@@ -16,9 +16,6 @@ on:
     - cron: '0 0 * * *'  # Daily at midnight UTC
   workflow_dispatch:  # Allow manual triggers
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   check-and-tag:
     runs-on: ubuntu-latest
@@ -51,11 +48,9 @@ jobs:
           # Check if there's a new version to release
           if bb check-newer; then
             echo "should-build=true" >> $GITHUB_OUTPUT
-            # Create and push tag if scheduled or manual
-            if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-              git config user.name "github-actions[bot]"
-              git config user.email "github-actions[bot]@users.noreply.github.com"
-              bb tag
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            bb tag
             fi
           else
             echo "should-build=false" >> $GITHUB_OUTPUT
