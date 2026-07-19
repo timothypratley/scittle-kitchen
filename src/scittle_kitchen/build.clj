@@ -327,7 +327,7 @@
             (println "scittle-kitchen build Dry run complete - skipping compilation")
             (do
               (println "scittle-kitchen build Compiling ClojureScript")
-              (shell {:dir build-dir} "npm" "install" "odex")
+              (shell {:dir build-dir} "npx shadow-cljs run shadow.cljs.npm-deps")
               (shell {:dir build-dir} "bb" "release")
               (println "scittle-kitchen build Copying js to" (str dest))
               (fs/copy-tree (fs/file build-dir "resources" "public" "js")
