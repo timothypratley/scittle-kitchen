@@ -288,8 +288,7 @@
     ;; Avoid React version conflicts
     (spit (fs/file build-dir "package.json")
           (json/generate-string {:dependencies {:react "18.3.1"
-                                                :react-dom "18.3.1"
-                                                :odex "2.0.4"}}))
+                                                :react-dom "18.3.1"}}))
     (let [public-dir (fs/file build-dir "resources" "public")
           manifest-data (manifest plugins plugin-roots)]
       (fs/create-dirs public-dir)
