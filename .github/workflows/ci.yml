@@ -50,10 +50,7 @@ jobs:
 
           # Check if there's a new version to release
           if bb check-newer; then
-            VERSION=$(bb v)
             echo "should-build=true" >> $GITHUB_OUTPUT
-            echo "new-version=v$VERSION" >> $GITHUB_OUTPUT
-
             # Create and push tag if scheduled or manual
             if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
               git config user.name "github-actions[bot]"
