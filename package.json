@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/timothypratley/scittle-kitchen/issues"
   },
-  "homepage": "https://github.com/timothypratley/scittle-kitchen#readme"
+  "homepage": "https://github.com/timothypratley/scittle-kitchen#readme",
+  "dependencies": {
+    "odex": "^3.0.0-rc.4"
+  }
 }
