@@ -91,7 +91,6 @@ jobs:
         run: bb release
 
       - name: NPM Publish
-        if: startsWith(github.ref, 'refs/tags/v')
         run: npm publish --tag latest
 
       - name: Upload Pages artifact
