@@ -123,10 +123,7 @@
                      emmy.sr.frames
                      emmy.algebra.fold
                      emmy.complex.impl]
-        :deps {org.mentat/emmy {:mvn/version "0.32.0"}
-               #_{:git/url "https://github.com/mentat-collective/emmy"
-                :git/sha "5a2e1470087d41ec43e73d661bfceb941a6e8870"}}
-        :npm-deps {"odex" "3.0.0-rc.4"}}
+        :deps {org.mentat/emmy {:mvn/version "0.32.0"}}}
  :emmy-viewers {:namespaces [emmy.mafs emmy.viewer emmy.mathbox emmy.mathbox.plot emmy.mathbox.color emmy.leva]
                 :deps {org.mentat/emmy-viewers {:mvn/version "0.3.2"}}
                 :depends-on #{:emmy :mathbox :reagent}}

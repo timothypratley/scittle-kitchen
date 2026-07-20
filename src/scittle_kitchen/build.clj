@@ -273,7 +273,8 @@
   (fs/create-dirs build-dir)
   (let [scittle-deps {'io.github.babashka/scittle (local build-dir "scittle")
                       'io.github.babashka/scittle.build (local build-dir (fs/file "scittle" "build"))
-                      'org.babashka/sci (scittle-sci-version)}
+                      'org.babashka/sci (scittle-sci-version)
+                      'thheller/shadow-cljs '{:mvn/version "3.3.8"}}
         plugin-deps (map (fn [plugin]
                            [(symbol "scittle-kitchen.plugins" (str "scittle." (name plugin)))
                             (local build-dir (get plugin-roots plugin))])
@@ -327,7 +328,6 @@
             (println "scittle-kitchen build Dry run complete - skipping compilation")
             (do
               (println "scittle-kitchen build Compiling ClojureScript")
-              (shell {:dir build-dir} "clojure" "-M" "-m" "shadow.cljs.npm-deps")
               (shell {:dir build-dir} "bb" "release")
               (println "scittle-kitchen build Copying js to" (str dest))
               (fs/copy-tree (fs/file build-dir "resources" "public" "js")

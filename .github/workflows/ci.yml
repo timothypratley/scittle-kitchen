@@ -87,9 +87,6 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: NPM install odex
-        run: cd scittle && npm install odex
-
       - name: Build plugins
         run: bb release
 
