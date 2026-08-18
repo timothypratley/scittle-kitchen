@@ -165,7 +165,10 @@
 ;; ## NPM versioning
 
 (defn released? []
-  (let [latest (-> (shell {:out :string} "npm view scittle-kitchen version") :out str/trim)
+  (let [latest (->> (shell {:out :string} "npm view scittle-kitchen version")
+                    :out
+                    str/trim
+                    (str "v"))
         kitchen (kitchen-version)]
     (println "NPM latest" latest "vs kitchen" kitchen)
     (= latest kitchen)))
