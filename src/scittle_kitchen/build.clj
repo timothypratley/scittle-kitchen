@@ -276,7 +276,7 @@
   (fs/create-dirs build-dir)
   (let [scittle-deps {'io.github.babashka/scittle (local build-dir "scittle")
                       'io.github.babashka/scittle.build (local build-dir (fs/file "scittle" "build"))
-                      'org.babashka/sci (scittle-sci-version)
+                      #_#_'org.babashka/sci (scittle-sci-version)
                       'thheller/shadow-cljs '{:mvn/version "3.3.8"}}
         plugin-deps (map (fn [plugin]
                            [(symbol "scittle-kitchen.plugins" (str "scittle." (name plugin)))
