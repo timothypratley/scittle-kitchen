@@ -16,15 +16,16 @@
                  :deps {cljs-http/cljs-http {:mvn/version "0.1.49"}}}
  #_#_:core-async {:namespaces [cljs.core.async]
                   :deps {org.clojure/core.async {:mvn/version "1.8.741"}}}
+ ;; dataspex and portfolio both depend on :phosphor, this felt cleaner than letting :portfolio depend on :dataspex, although that would be backwards compatible
+ :phosphor {:namespaces [phosphor.icons]
+             :deps {no.cjohansen/phosphor-clj {:mvn/version "2025.04.16"}}}
  :dataspex {:namespaces [dataspex.core
                          dataspex.hiccup
                          dataspex.panel
                          dataspex.ui
-                         dataspex.icons
-                         phosphor.icons]
-            :deps {no.cjohansen/dataspex {:mvn/version "2025.06.8"}
-                   no.cjohansen/phosphor-clj {:mvn/version "2025.04.16"}}
-            :depends-on #{:datascript}}
+                         dataspex.icons]
+            :deps {no.cjohansen/dataspex {:mvn/version "2025.06.8"}}
+            :depends-on #{:datascript :phosphor}}
  :emmy {:namespaces [emmy.autodiff
                      emmy.value
                      emmy.numbers
@@ -215,6 +216,17 @@
                         mathbox.primitives]
            :deps {org.mentat/mathbox.cljs {:mvn/version "0.2.2"}}
            :depends-on #{:reagent}}
+ :portfolio {:namespaces [portfolio.adapter
+                          portfolio.data
+                          portfolio.ui
+                          portfolio.ui.search]
+             :interpreted-namespaces [portfolio.core
+                                      portfolio.replicant
+                                      portfolio.reagent
+                                      portfolio.react-utils
+                                      portfolio.reagent-18]
+             :deps {no.cjohansen/portfolio {:mvn/version "2026.03.1"}}
+             :depends-on #{:phosphor}}
  :re-frame-undo {:namespaces [day8.re-frame.undo]
                  :deps {day8.re-frame/undo {:mvn/version "0.3.3"}}
                  :depends-on #{:re-frame}}

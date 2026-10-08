@@ -6,7 +6,9 @@
             [cheshire.core :as json]
             [clojure.edn :as edn]
             [clojure.pprint :as pprint]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.java.io :as io]
+            [scittle-kitchen.cljc :as cljc]))
 
 (deps/add-deps '{:deps {camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}}})
 (require '[camel-snake-kebab.core :as csk])
@@ -35,26 +37,71 @@
   (cond-> (edn/read-string (slurp f))
     path (get-in path)))
 
+
+(defn pp-str [x]
+  (with-out-str (binding [*print-namespace-maps* false]
+                  (pprint/pprint x))))
+
 (defn pretty-spit [f x]
-  (spit f (with-out-str (binding [*print-namespace-maps* false]
-                          (pprint/pprint x))))
+  (spit f (pp-str x))
   (println "scittle-kitchen build Created" (str f)))
+
+(defn sym->path [sym]
+  (-> (str sym)
+      (str/split #"\.")
+      (->> (str/join "/"))))
 
 ;; ## Plugin expansion from template to file system
 
-(defn plugin-edn [nm {:keys [namespaces depends-on]}]
+
+(defn plugin-edn [nm {:keys [namespaces depends-on interpreted-namespaces]}]
   (let [module (str "scittle." nm)]
     [{:name (symbol "scittle" nm)
       :namespaces namespaces
       :js (str "./scittle." nm ".js")
       :shadow-config
-      {:modules
-       {(keyword module)
-        {:init-fn (symbol module "init")
-         :depends-on (into #{:scittle}
-                           (for [k depends-on]
-                             (keyword (str "scittle." (name k)))))
-         :entries namespaces}}}}]))
+      (cond->
+          {:modules
+           {(keyword module)
+            {:init-fn (symbol module "init")
+             :depends-on (into #{:scittle}
+                               (for [k depends-on]
+                                 (keyword (str "scittle." (name k)))))
+             :entries namespaces}}}
+          ;; Portfolio is an example of where we need interpreted namespaces
+          (seq interpreted-namespaces)
+          (assoc :build-hooks
+                 (mapv (fn [n]
+                         (let [f (str "scittle." (csk/->snake_case n) ".cljs")]
+                           (list 'shadow.html/copy-file
+                                 (str "../../plugins/" nm "/resources/scittle/" f)
+                                 (str "../../dist/" f)))) 
+                       interpreted-namespaces)))}]))
+
+(defn write-interpreted-namespaces [plugin-dir plugin]
+  (when-let [ins (seq (:interpreted-namespaces plugin))]
+    (when-let [deps (:deps plugin)]
+      (deps/add-deps {:deps deps}))
+    (let [resource-dir (fs/file plugin-dir "resources" "scittle")]
+      (fs/create-dirs resource-dir)
+      (doseq [n ins]
+        (let [n (csk/->snake_case n)
+              basepath (sym->path n)                                     
+              content (str/join "\n\n" 
+                                (keep 
+                                 (fn [ext]
+                                   (when-let [r (io/resource (str basepath ext))]
+                                     (let [s (slurp r)]
+                                       (if (= ext ".cljc")
+                                         (let [{:keys [cljs clj]} (cljc/split-source s)]
+                                           (str
+                                            (when cljs
+                                              (str ";; .cljc - cljs \n" cljs))
+                                            (when clj
+                                              (str "\n\n;; .cljc - clj \n" clj))))                                         
+                                         (str ";; " ext "\n" s)))))
+                                 [".cljs" ".cljc" ".clj"]))]
+          (spit (fs/file resource-dir (str "scittle." n ".cljs")) content))))))
 
 (defn write-plugin [k plugin]
   (let [nm (name k)
@@ -73,6 +120,7 @@
                          (for [ns (:namespaces plugin)]
                            (str "'" ns " (sci/copy-ns " ns " (sci/create-ns '" ns " nil))")))
                         "}}")]
+    (write-interpreted-namespaces plugin-dir plugin)
     (fs/create-dirs src-dir)
     (spit (str cljs-file)
           (str "(ns scittle." nm "\n"
@@ -92,7 +140,9 @@
                "   ))\n"))
     (println "scittle-kitchen build Created" (str cljs-file))
     (pretty-spit edn-file (plugin-edn nm plugin))
-    (pretty-spit deps-file {:deps (or (:deps plugin) {})})))
+    (pretty-spit deps-file (cond-> {:deps (or (:deps plugin) {})} 
+                             (:interpreted-namespaces plugin)
+                             (assoc :paths ["src" "resources"])))))
 
 (defn expand-plugin-tempalates []
   (println "scittle-kitchen build Expanding plugin-templates.edn to plugins")
@@ -289,9 +339,10 @@
                            release {:task (scittle.build/build {})}}})
     (pretty-spit (fs/file build-dir "deps.edn")
                  {:deps scittle-deps})
-    ;; Avoid React version conflicts
+    ;; Avoid React and Process version conflicts
     (spit (fs/file build-dir "package.json")
-          (json/generate-string {:dependencies {:react "18.3.1"
+          (json/generate-string {:dependencies {:process "0.11.10"
+                                                :react "18.3.1"
                                                 :react-dom "18.3.1"}}))
     (let [public-dir (fs/file build-dir "resources" "public")
           manifest-data (manifest plugins plugin-roots)]
